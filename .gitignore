@@ -31,3 +31,6 @@ yarn-error.log*
 # Test / coverage
 coverage
 .claude/
+
+# Local fixture browser artifacts
+test-results/
