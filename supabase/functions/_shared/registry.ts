@@ -1,3 +1,4 @@
+import { adsenseAdapter } from "./adsense.ts";
 import type { SyncAdapter } from "./sync-run.ts";
 import type { SyncSource } from "./validate.ts";
 import { gscAdapter } from "./gsc.ts";
@@ -8,4 +9,5 @@ export const ADAPTERS: Record<SyncSource, SyncAdapter> = {
   gsc: gscAdapter,
   ga4: ga4Adapter,
   bing: bingAdapter,
+  adsense: adsenseAdapter,
 };

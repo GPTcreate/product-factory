@@ -9,6 +9,8 @@ export interface SiteRow {
   gsc_property: string | null;
   ga4_property_id: string | null;
   bing_site_url: string | null;
+  adsense_enabled?: boolean;
+  adsense_mapping_key?: string | null;
 }
 
 export interface SyncContext {

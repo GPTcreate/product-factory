@@ -1,3 +1,4 @@
+import { syncGa4Detail } from "./ga4-detail.ts";
 import { SyncError, codeForStatus, isRetryableStatus } from "./errors.ts";
 import { fetchWithRetry } from "./http.ts";
 import { getGoogleAccessToken } from "./google-auth.ts";
@@ -67,11 +68,29 @@ export const ga4Adapter: SyncAdapter = async ({
     if (error) throw error;
   }
 
+  let extraRows = 0;
+  let detailFailed = false;
+  try {
+    extraRows = await syncGa4Detail(
+      admin,
+      token,
+      site.ga4_property_id,
+      site.id,
+      startDate,
+      endDate,
+    );
+  } catch {
+    detailFailed = true;
+  }
   return {
     rowsFetched: report.rows?.length ?? 0,
-    rowsWritten: rows.length,
+    rowsWritten: rows.length + extraRows,
+    partial: detailFailed,
     rangeStart: startDate,
     rangeEnd: endDate,
-    metadata: { provider: "ga4" },
+    metadata: {
+      provider: "ga4",
+      failedBreakdowns: detailFailed ? ["audience/events"] : [],
+    },
   };
 };

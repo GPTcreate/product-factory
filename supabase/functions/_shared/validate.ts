@@ -1,10 +1,10 @@
 // Pure request validation - no Deno/npm imports, so it is unit-testable from
 // Vitest. The edge functions import these helpers to validate caller input.
 
-export type SyncSource = "gsc" | "ga4" | "bing";
+export type SyncSource = "gsc" | "ga4" | "bing" | "adsense";
 export type ManualSource = SyncSource | "all";
 
-const SOURCES: ManualSource[] = ["gsc", "ga4", "bing", "all"];
+const SOURCES: ManualSource[] = ["gsc", "ga4", "bing", "adsense", "all"];
 
 // Accept any well-formed UUID shape (the DB is the real authority on whether a
 // row exists). Strict version/variant enforcement wrongly rejected the seed
@@ -45,7 +45,10 @@ export function parseManualSyncInput(
     typeof b.source !== "string" ||
     !SOURCES.includes(b.source as ManualSource)
   ) {
-    return { ok: false, error: "source must be one of gsc, ga4, bing, all" };
+    return {
+      ok: false,
+      error: "source must be one of gsc, ga4, bing, adsense, all",
+    };
   }
 
   const range = parseOptionalRange(b.rangeStart, b.rangeEnd);
@@ -78,6 +81,13 @@ function parseOptionalRange(
   if (!DATE_RE.test(start) || !DATE_RE.test(end)) {
     return { ok: false, error: "Dates must be YYYY-MM-DD" };
   }
+  if (
+    !Number.isFinite(Date.parse(start)) ||
+    !Number.isFinite(Date.parse(end)) ||
+    new Date(start).toISOString().slice(0, 10) !== start ||
+    new Date(end).toISOString().slice(0, 10) !== end
+  )
+    return { ok: false, error: "Dates must be real calendar dates" };
   if (start > end) {
     return { ok: false, error: "rangeStart must be on or before rangeEnd" };
   }
@@ -90,5 +100,5 @@ function parseOptionalRange(
 
 /** Expand a manual "all" into the concrete sources to run. */
 export function expandSources(source: ManualSource): SyncSource[] {
-  return source === "all" ? ["gsc", "ga4", "bing"] : [source];
+  return source === "all" ? ["gsc", "ga4", "bing", "adsense"] : [source];
 }

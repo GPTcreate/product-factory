@@ -131,6 +131,49 @@ export const gscAdapter: SyncAdapter = async ({
     failed.push("page");
   }
 
+  for (const dimension of ["country", "device"] as const) {
+    try {
+      const raw: GscApiRow[] = [];
+      const maxRows = 150000;
+      for (let startRow = 0; startRow < maxRows; startRow += 25000) {
+        const page = await queryGsc(token, property, {
+          startDate,
+          endDate,
+          dimensions: ["date", dimension],
+          rowLimit: 25000,
+          startRow,
+        });
+        raw.push(...page);
+        if (page.length < 25000) break;
+        if (raw.length === maxRows)
+          throw new Error("GSC audience report truncated");
+      }
+      const audience = normalizeGscBreakdown(raw, maxRows).map((r) => ({
+        site_id: site.id,
+        metric_date: r.metric_date,
+        dimension,
+        value: r.key,
+        clicks: r.clicks,
+        impressions: r.impressions,
+        ctr: r.ctr,
+        average_position: r.average_position,
+        updated_at: updatedAt,
+      }));
+      for (let i = 0; i < audience.length; i += 1000) {
+        const { error } = await admin
+          .from("search_audience_daily")
+          .upsert(audience.slice(i, i + 1000), {
+            onConflict: "site_id,metric_date,dimension,value",
+          });
+        if (error) throw error;
+      }
+      rowsFetched += raw.length;
+      rowsWritten += audience.length;
+    } catch {
+      failed.push(dimension);
+    }
+  }
+
   return {
     rowsFetched,
     rowsWritten,

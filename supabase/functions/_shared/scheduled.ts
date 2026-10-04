@@ -7,7 +7,7 @@ import { json } from "./response.ts";
 import type { SyncSource } from "./validate.ts";
 
 const SITE_COLUMNS =
-  "id,name,domain,gsc_property,ga4_property_id,bing_site_url";
+  "id,name,domain,gsc_property,ga4_property_id,bing_site_url,adsense_enabled,adsense_mapping_key";
 
 /**
  * Shared body of every scheduled-sync-* function: validate the automation
