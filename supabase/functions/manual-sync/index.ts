@@ -7,7 +7,7 @@ import { runIntegrationSync, type SiteRow } from "../_shared/sync-run.ts";
 import { ADAPTERS } from "../_shared/registry.ts";
 
 const SITE_COLUMNS =
-  "id,name,domain,gsc_property,ga4_property_id,bing_site_url";
+  "id,name,domain,gsc_property,ga4_property_id,bing_site_url,adsense_enabled,adsense_mapping_key";
 
 Deno.serve(async (req) => {
   const pre = preflight(req);
