@@ -1,3 +1,18 @@
+import type {
+  ProductFields,
+  Idea,
+  FactoryWeek,
+  AdSenseDaily,
+  AnalyticsExtended,
+  EventDaily,
+  SearchAudience,
+} from "../../supabase/functions/_shared/product";
+type FactoryTable<T> = {
+  Row: { [K in keyof T]: T[K] };
+  Insert: Partial<T>;
+  Update: Partial<T>;
+  Relationships: [];
+};
 // Database types for the Site Analytics schema.
 //
 // Hand-authored to mirror supabase/migrations/0001_initial_schema.sql. Once a
@@ -13,7 +28,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
-export type SyncSource = "gsc" | "ga4" | "bing";
+export type SyncSource = "gsc" | "ga4" | "bing" | "adsense";
 export type SearchEngine = "google" | "bing";
 export type SyncStatus = "running" | "success" | "partial" | "failed";
 export type TriggerType = "scheduled" | "manual" | "backfill";
@@ -21,8 +36,14 @@ export type TriggerType = "scheduled" | "manual" | "backfill";
 export interface Database {
   public: {
     Tables: {
+      analytics_extended_daily: FactoryTable<AnalyticsExtended>;
+      analytics_event_daily: FactoryTable<EventDaily>;
+      search_audience_daily: FactoryTable<SearchAudience>;
+      ideas: FactoryTable<Idea>;
+      factory_weeks: FactoryTable<FactoryWeek>;
+      adsense_daily_metrics: FactoryTable<AdSenseDaily>;
       sites: {
-        Row: {
+        Row: Partial<ProductFields> & {
           id: string;
           name: string;
           domain: string;
@@ -34,7 +55,7 @@ export interface Database {
           created_at: string;
           updated_at: string;
         };
-        Insert: {
+        Insert: Partial<ProductFields> & {
           id?: string;
           name: string;
           domain: string;
