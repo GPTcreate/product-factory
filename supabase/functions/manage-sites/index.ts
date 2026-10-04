@@ -5,8 +5,7 @@ import { normalizeError } from "../_shared/errors.ts";
 import { parseSiteInput } from "../_shared/site-input.ts";
 import { isUuid } from "../_shared/validate.ts";
 
-const SITE_COLUMNS =
-  "id,name,domain,website_url,gsc_property,ga4_property_id,bing_site_url,is_active,created_at,updated_at";
+const SITE_COLUMNS = "*";
 
 Deno.serve(async (req) => {
   const pre = preflight(req);
@@ -76,7 +75,8 @@ Deno.serve(async (req) => {
             {
               ok: false,
               error: "domain_exists",
-              message: "That domain is already tracked.",
+              message:
+                "That domain, product code or AdSense mapping is already tracked.",
             },
             cors,
           );
@@ -113,7 +113,8 @@ Deno.serve(async (req) => {
           {
             ok: false,
             error: "domain_exists",
-            message: "That domain is already tracked.",
+            message:
+              "That domain, product code or AdSense mapping is already tracked.",
           },
           cors,
         );
@@ -122,19 +123,7 @@ Deno.serve(async (req) => {
     }
     if (!data) return json(404, { ok: false, error: "not_found" }, cors);
 
-    // Keep each integration enabled iff its provider id is configured.
-    const reconcile: Array<[string, boolean]> = [
-      ["gsc", input.gsc_property != null],
-      ["ga4", input.ga4_property_id != null],
-      ["bing", input.bing_site_url != null],
-    ];
-    for (const [source, enabled] of reconcile) {
-      await admin
-        .from("integration_status")
-        .update({ enabled })
-        .eq("site_id", id)
-        .eq("source", source);
-    }
+    // Integration state is reconciled by the transactional database trigger.
 
     return json(200, { ok: true, site: data }, cors);
   } catch (err) {
