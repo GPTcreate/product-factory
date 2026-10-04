@@ -20,6 +20,7 @@ import { randomBytes } from "node:crypto";
 const SCOPES = [
   "https://www.googleapis.com/auth/webmasters.readonly",
   "https://www.googleapis.com/auth/analytics.readonly",
+  "https://www.googleapis.com/auth/adsense.readonly",
 ];
 
 const clientId = process.env.GOOGLE_CLIENT_ID;
