@@ -47,7 +47,7 @@ export function LoginPage() {
 
   return (
     <AuthShell
-      title="Site Analytics"
+      title="Product Factory"
       subtitle="Sign in to the website portfolio control center"
     >
       <form onSubmit={onSubmit} className="space-y-4" noValidate>
