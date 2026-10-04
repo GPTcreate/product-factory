@@ -73,8 +73,8 @@ describe("parseManualSyncInput", () => {
 });
 
 describe("expandSources", () => {
-  it("expands 'all' to the three sources", () => {
-    expect(expandSources("all")).toEqual(["gsc", "ga4", "bing"]);
+  it("expands 'all' to all four sources", () => {
+    expect(expandSources("all")).toEqual(["gsc", "ga4", "bing", "adsense"]);
   });
   it("returns a single source as-is", () => {
     expect(expandSources("bing")).toEqual(["bing"]);
