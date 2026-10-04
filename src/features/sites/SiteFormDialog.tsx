@@ -1,3 +1,7 @@
+import {
+  PRODUCT_STATUSES,
+  MARKETS,
+} from "../../../supabase/functions/_shared/product";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { X } from "lucide-react";
@@ -6,11 +10,21 @@ import { SaveSiteError, type SiteFormValues } from "@/lib/api";
 import type { Site } from "@/types/database";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Alert } from "@/components/ui/alert";
 
 function toDefaults(site?: Site): SiteFormValues {
   return {
+    product_code: site?.product_code ?? "",
+    market: site?.market ?? "Korea",
+    primary_language: site?.primary_language ?? "ko",
+    level: site?.level ?? 1,
+    version: site?.version ?? "1.0",
+    status: site?.status ?? "IDEA",
+    launch_date: site?.launch_date ?? "",
+    github_repo: site?.github_repo ?? "",
+    deploy_url: site?.deploy_url ?? "",
+    adsense_enabled: site?.adsense_enabled ?? false,
+    adsense_mapping_key: site?.adsense_mapping_key ?? "",
     name: site?.name ?? "",
     domain: site?.domain ?? "",
     website_url: site?.website_url ?? "",
@@ -26,7 +40,9 @@ export function SiteFormDialog({
   site,
   onClose,
   onDeleted,
+  preset,
 }: {
+  preset?: Partial<SiteFormValues>;
   mode: "create" | "edit";
   site?: Site;
   onClose: () => void;
@@ -61,7 +77,7 @@ export function SiteFormDialog({
         setFormError(
           err instanceof SaveSiteError
             ? err.message
-            : "Could not delete the site.",
+            : "Could not delete the product.",
         ),
     });
   };
@@ -69,7 +85,9 @@ export function SiteFormDialog({
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<SiteFormValues>({ defaultValues: toDefaults(site) });
+  } = useForm<SiteFormValues>({
+    defaultValues: { ...toDefaults(site), ...preset },
+  });
 
   const onSubmit = handleSubmit((values) => {
     setFormError(null);
@@ -85,7 +103,7 @@ export function SiteFormDialog({
           setFormError(
             err instanceof SaveSiteError
               ? err.message
-              : "Could not save the site. Please try again.",
+              : "Could not save the product. Please try again.",
           ),
       },
     );
@@ -101,11 +119,11 @@ export function SiteFormDialog({
         className="mt-10 w-full max-w-lg rounded-lg border border-border bg-card p-5 shadow-xl"
         role="dialog"
         aria-modal="true"
-        aria-label={mode === "create" ? "Add site" : "Edit site"}
+        aria-label={mode === "create" ? "Add product" : "Edit product"}
       >
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold">
-            {mode === "create" ? "Add a site" : "Edit site"}
+            {mode === "create" ? "Add a product" : "Edit product"}
           </h2>
           <button
             onClick={onClose}
@@ -119,6 +137,53 @@ export function SiteFormDialog({
         <form onSubmit={onSubmit} className="mt-4 space-y-3" noValidate>
           {formError && <Alert tone="error">{formError}</Alert>}
 
+          <div className="grid grid-cols-2 gap-3">
+            <label className="text-sm">
+              Product code
+              <Input {...register("product_code")} placeholder="P001" />
+            </label>
+            <label className="text-sm">
+              Status
+              <select className="factory-input" {...register("status")}>
+                {PRODUCT_STATUSES.map((v) => (
+                  <option key={v}>{v}</option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm">
+              Market
+              <select className="factory-input" {...register("market")}>
+                {MARKETS.map((v) => (
+                  <option key={v}>{v}</option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm">
+              Language
+              <Input {...register("primary_language")} />
+            </label>
+            <label className="text-sm">
+              Level
+              <select
+                className="factory-input"
+                {...register("level", { valueAsNumber: true })}
+              >
+                {[1, 2, 3].map((v) => (
+                  <option key={v} value={v}>
+                    Level {v}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm">
+              Version
+              <Input {...register("version")} />
+            </label>
+            <label className="text-sm">
+              Launch date
+              <Input type="date" {...register("launch_date")} />
+            </label>
+          </div>
           <Field label="Name" error={errors.name?.message}>
             <Input
               {...register("name", { required: "Name is required" })}
@@ -164,6 +229,34 @@ export function SiteFormDialog({
             />
           </Field>
 
+          <label className="block text-sm">
+            GitHub repository URL
+            <Input
+              {...register("github_repo")}
+              placeholder="https://github.com/owner/repository"
+            />
+          </label>
+          <label className="block text-sm">
+            Deployment URL
+            <Input
+              {...register("deploy_url")}
+              placeholder="https://example.pages.dev"
+            />
+          </label>
+          <label className="block text-sm">
+            AdSense verified site domain
+            <Input
+              {...register("adsense_mapping_key")}
+              placeholder="iposcore.kr"
+            />
+            <span className="text-xs text-muted-foreground">
+              Exact AdSense site domain. One domain maps to one product.
+            </span>
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" {...register("adsense_enabled")} /> Enable
+            AdSense
+          </label>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" {...register("is_active")} />
             Active
@@ -174,7 +267,7 @@ export function SiteFormDialog({
               confirmDelete ? (
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-muted-foreground">
-                    Delete site and all its data?
+                    Delete product and all its data?
                   </span>
                   <Button
                     type="button"
@@ -202,7 +295,7 @@ export function SiteFormDialog({
                   className="text-critical"
                   onClick={() => setConfirmDelete(true)}
                 >
-                  Delete site
+                  Delete product
                 </Button>
               )
             ) : (
@@ -214,7 +307,7 @@ export function SiteFormDialog({
                 Cancel
               </Button>
               <Button type="submit" loading={mutation.isPending}>
-                {mode === "create" ? "Add site" : "Save changes"}
+                {mode === "create" ? "Add product" : "Save changes"}
               </Button>
             </div>
           </div>
@@ -241,13 +334,13 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-1.5">
-      <Label>{label}</Label>
+    <label className="block space-y-1.5">
+      <span className="text-sm font-medium">{label}</span>
       {children}
       {hint && !error && (
         <p className="text-xs text-muted-foreground">{hint}</p>
       )}
       {error && <p className="text-xs text-critical">{error}</p>}
-    </div>
+    </label>
   );
 }

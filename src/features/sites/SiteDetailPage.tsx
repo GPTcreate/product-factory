@@ -1,3 +1,5 @@
+import { AnalyticsDetail } from "@/features/factory/AnalyticsDetail";
+import { RevenuePanel } from "@/features/factory/RevenuePanel";
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ExternalLink, Pencil } from "lucide-react";
@@ -79,6 +81,7 @@ export function SiteDetailPage() {
   const navigate = useNavigate();
   const [days, setDays] = useState<number>(30);
   const [editing, setEditing] = useState(false);
+  const [tab, setTab] = useState("Overview");
 
   const siteQuery = useSite(siteId);
   const metricsQuery = useSiteMetrics(siteId, days);
@@ -90,11 +93,11 @@ export function SiteDetailPage() {
   if (!siteQuery.data)
     return (
       <EmptyState
-        title="Site not found"
+        title="Product not found"
         description="This website may have been removed."
         action={
           <Link to="/sites" className="text-sm text-primary hover:underline">
-            Back to sites
+            Back to products
           </Link>
         }
       />
@@ -184,34 +187,79 @@ export function SiteDetailPage() {
         })}
       </div>
 
-      <UptimeCard siteId={site.id} />
-
-      <ManualSyncButtons site={site} />
-
-      {metricsQuery.isLoading ? (
-        <Skeleton className="h-64" />
-      ) : metricsQuery.isError ? (
-        <ErrorState onRetry={() => void metricsQuery.refetch()} />
-      ) : (
-        <>
-          <TrajectorySection
-            siteId={siteId}
-            analytics={metricsQuery.data?.analytics ?? []}
-            search={metricsQuery.data?.search ?? []}
-          />
-          <MetricsSection
-            days={days}
-            analytics={metricsQuery.data?.analytics ?? []}
-            search={metricsQuery.data?.search ?? []}
-          />
-        </>
+      <p className="text-sm text-muted-foreground">
+        {site.product_code} · {site.market} · {site.primary_language} · Level{" "}
+        {site.level ?? 1} · v{site.version ?? "1.0"} · {site.status ?? "LIVE"}
+      </p>
+      <nav
+        aria-label="Product detail"
+        className="flex gap-2 overflow-x-auto border-b pb-3"
+      >
+        {["Overview", "Traffic", "Search", "Revenue", "Events", "Health"].map(
+          (v) => (
+            <Button
+              key={v}
+              size="sm"
+              variant={v === tab ? "primary" : "ghost"}
+              onClick={() => setTab(v)}
+            >
+              {v}
+            </Button>
+          ),
+        )}
+      </nav>
+      {(tab === "Overview" || tab === "Revenue") && (
+        <RevenuePanel days={days} products={[site]} productId={site.id} />
       )}
+      {(tab === "Overview" || tab === "Traffic") && (
+        <AnalyticsDetail site={site} days={days} section="traffic" />
+      )}
+      {tab === "Events" && (
+        <AnalyticsDetail site={site} days={days} section="events" />
+      )}
+      {tab === "Search" && (
+        <AnalyticsDetail site={site} days={days} section="search" />
+      )}
+      <div
+        className={
+          tab === "Overview" || tab === "Health" ? "space-y-6" : "hidden"
+        }
+      >
+        <UptimeCard siteId={site.id} />
 
-      <TrackedQueriesSection siteId={siteId} days={days} />
+        <ManualSyncButtons site={site} />
+      </div>
+      <div
+        className={
+          tab === "Overview" || tab === "Traffic" || tab === "Search"
+            ? "space-y-6"
+            : "hidden"
+        }
+      >
+        {metricsQuery.isLoading ? (
+          <Skeleton className="h-64" />
+        ) : metricsQuery.isError ? (
+          <ErrorState onRetry={() => void metricsQuery.refetch()} />
+        ) : (
+          <>
+            <TrajectorySection
+              siteId={siteId}
+              analytics={metricsQuery.data?.analytics ?? []}
+              search={metricsQuery.data?.search ?? []}
+            />
+            <MetricsSection
+              days={days}
+              analytics={metricsQuery.data?.analytics ?? []}
+              search={metricsQuery.data?.search ?? []}
+            />
+          </>
+        )}
 
-      {/* Top queries & pages */}
-      <SearchTermsSection siteId={siteId} days={days} />
+        <TrackedQueriesSection siteId={siteId} days={days} />
 
+        {/* Top queries & pages */}
+        <SearchTermsSection siteId={siteId} days={days} />
+      </div>
       {/* Recent runs */}
       <section className="space-y-3">
         <h2 className="text-sm font-semibold">Recent sync runs</h2>

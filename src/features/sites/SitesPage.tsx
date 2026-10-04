@@ -1,3 +1,7 @@
+import { dataAvailability } from "@/features/factory/model";
+import { useInsights } from "@/lib/hooks";
+import { ComparisonTable } from "@/features/dashboard/ComparisonTable";
+import { RevenuePanel } from "@/features/factory/RevenuePanel";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Plus } from "lucide-react";
@@ -16,24 +20,47 @@ import { usePrivacyMode } from "@/lib/privacy";
 
 export function SitesPage() {
   const privacy = usePrivacyMode();
+  const insights = useInsights(30);
   const { data: sites, isLoading, isError, refetch } = useSites();
   const [adding, setAdding] = useState(false);
+  const [p001, setP001] = useState(false);
   const now = new Date();
 
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold">Sites</h1>
+          <h1 className="text-xl font-semibold">Products</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Every managed website and its integration health.
+            Your product portfolio, lifecycle and integration health.
           </p>
         </div>
-        <Button size="sm" onClick={() => setAdding(true)}>
+        <Button
+          size="sm"
+          onClick={() => {
+            setP001(false);
+            setAdding(true);
+          }}
+        >
           <Plus className="h-4 w-4" aria-hidden />
-          Add site
+          Add product
         </Button>
       </div>
+
+      {sites &&
+        !sites.some(
+          (s) => s.product_code === "P001" || s.domain === "iposcore.kr",
+        ) && (
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setP001(true);
+              setAdding(true);
+            }}
+          >
+            Register P001 · IPOScore
+          </Button>
+        )}
 
       {isLoading && (
         <div className="grid gap-3 sm:grid-cols-2">
@@ -47,12 +74,18 @@ export function SitesPage() {
 
       {sites && sites.length === 0 && (
         <EmptyState
-          title="No websites yet"
-          description="Add your first site to start tracking its metrics."
+          title="No products yet"
+          description="Add your first product to start tracking its metrics."
           action={
-            <Button size="sm" onClick={() => setAdding(true)}>
+            <Button
+              size="sm"
+              onClick={() => {
+                setP001(false);
+                setAdding(true);
+              }}
+            >
               <Plus className="h-4 w-4" aria-hidden />
-              Add site
+              Add product
             </Button>
           }
         />
@@ -61,7 +94,7 @@ export function SitesPage() {
       {sites && sites.length > 0 && (
         <div className="grid gap-3 sm:grid-cols-2">
           {sites.map((site) => (
-            <Link key={site.id} to={`/sites/${site.id}`} className="block">
+            <Link key={site.id} to={`/products/${site.id}`} className="block">
               <Card className="h-full transition-colors hover:border-primary/50">
                 <CardContent className="space-y-3 p-4">
                   <div>
@@ -71,6 +104,16 @@ export function SitesPage() {
                     <p className="text-xs text-muted-foreground">
                       {privacy.maskText(site.domain, `site:${site.id}:domain`)}
                     </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="factory-tag">
+                      {site.product_code ?? "Unassigned"}
+                    </span>
+                    <span className="factory-tag">{site.status ?? "LIVE"}</span>
+                    <span className="factory-tag">
+                      {site.market ?? "Global"} · L{site.level ?? 1} · v
+                      {site.version ?? "1.0"}
+                    </span>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {SOURCES.map((source) => {
@@ -108,8 +151,42 @@ export function SitesPage() {
         </div>
       )}
 
+      {insights.data && (
+        <section className="space-y-3">
+          <h2 className="font-semibold">Product KPI comparison · 30 days</h2>
+          <ComparisonTable
+            sites={insights.data.sites}
+            missing={
+              dataAvailability(
+                insights.data.sitesWithStatuses,
+                insights.data.raw,
+                30,
+              ).products
+            }
+          />
+        </section>
+      )}
+      {sites && sites.length > 0 && <RevenuePanel days={30} products={sites} />}
       {adding && (
-        <SiteFormDialog mode="create" onClose={() => setAdding(false)} />
+        <SiteFormDialog
+          mode="create"
+          preset={
+            p001
+              ? {
+                  product_code: "P001",
+                  name: "IPOScore",
+                  domain: "iposcore.kr",
+                  website_url: "https://iposcore.kr",
+                  market: "Korea",
+                  primary_language: "ko",
+                  level: 1,
+                  status: "LIVE",
+                  deploy_url: "https://iposcore.kr",
+                }
+              : undefined
+          }
+          onClose={() => setAdding(false)}
+        />
       )}
     </div>
   );
