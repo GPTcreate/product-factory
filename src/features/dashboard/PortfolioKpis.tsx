@@ -3,7 +3,13 @@ import { StatCard, MetricDelta } from "@/components/ui/stat-card";
 import { formatNumber } from "@/lib/format";
 import { usePrivacyMode } from "@/lib/privacy";
 
-export function PortfolioKpis({ data }: { data: InsightsResult }) {
+export function PortfolioKpis({
+  data,
+  availability,
+}: {
+  data: InsightsResult;
+  availability?: { ga4?: string; search?: string };
+}) {
   const privacy = usePrivacyMode();
   const { kpis, engineSplit } = data;
   const googleClicks =
@@ -18,30 +24,45 @@ export function PortfolioKpis({ data }: { data: InsightsResult }) {
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       <StatCard
         label="Search clicks"
-        value={formatNumber(
-          privacy.maskNumber(kpis.clicks.current, "portfolio:clicks"),
-        )}
+        value={
+          availability?.search ??
+          formatNumber(
+            privacy.maskNumber(kpis.clicks.current, "portfolio:clicks"),
+          )
+        }
         hint={<MetricDelta change={kpis.clicks.pct} />}
       />
       <StatCard
         label="Impressions"
-        value={formatNumber(
-          privacy.maskNumber(kpis.impressions.current, "portfolio:impressions"),
-        )}
+        value={
+          availability?.search ??
+          formatNumber(
+            privacy.maskNumber(
+              kpis.impressions.current,
+              "portfolio:impressions",
+            ),
+          )
+        }
         hint={<MetricDelta change={kpis.impressions.pct} />}
       />
       <StatCard
         label="Active users"
-        value={formatNumber(
-          privacy.maskNumber(kpis.users.current, "portfolio:users"),
-        )}
+        value={
+          availability?.ga4 ??
+          formatNumber(
+            privacy.maskNumber(kpis.users.current, "portfolio:users"),
+          )
+        }
         hint={<MetricDelta change={kpis.users.pct} />}
       />
       <StatCard
         label="Sessions"
-        value={formatNumber(
-          privacy.maskNumber(kpis.sessions.current, "portfolio:sessions"),
-        )}
+        value={
+          availability?.ga4 ??
+          formatNumber(
+            privacy.maskNumber(kpis.sessions.current, "portfolio:sessions"),
+          )
+        }
         hint={
           totalClicks > 0 ? (
             <span className="text-muted-foreground">

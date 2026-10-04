@@ -37,7 +37,13 @@ function sortValue(row: SiteRow, key: SortKey): number | string {
   }
 }
 
-export function ComparisonTable({ sites }: { sites: SiteRow[] }) {
+export function ComparisonTable({
+  sites,
+  missing,
+}: {
+  sites: SiteRow[];
+  missing?: Record<string, { ga4?: string; search?: string }>;
+}) {
   const privacy = usePrivacyMode();
   const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" }>({
     key: "clicks",
@@ -113,6 +119,7 @@ export function ComparisonTable({ sites }: { sites: SiteRow[] }) {
                   </Link>
                 </td>
                 <NumCell
+                  missing={missing?.[s.siteId]?.ga4}
                   value={privacy.maskNumber(
                     s.sessions.current,
                     `${s.siteId}:sessions`,
@@ -120,6 +127,7 @@ export function ComparisonTable({ sites }: { sites: SiteRow[] }) {
                   pct={s.sessions.pct}
                 />
                 <NumCell
+                  missing={missing?.[s.siteId]?.ga4}
                   value={privacy.maskNumber(
                     s.users.current,
                     `${s.siteId}:users`,
@@ -127,6 +135,7 @@ export function ComparisonTable({ sites }: { sites: SiteRow[] }) {
                   pct={s.users.pct}
                 />
                 <NumCell
+                  missing={missing?.[s.siteId]?.search}
                   value={privacy.maskNumber(
                     s.clicks.current,
                     `${s.siteId}:clicks`,
@@ -134,6 +143,7 @@ export function ComparisonTable({ sites }: { sites: SiteRow[] }) {
                   pct={s.clicks.pct}
                 />
                 <NumCell
+                  missing={missing?.[s.siteId]?.search}
                   value={privacy.maskNumber(
                     s.impressions.current,
                     `${s.siteId}:impressions`,
@@ -213,7 +223,21 @@ function Th({
   );
 }
 
-function NumCell({ value, pct }: { value: number | null; pct: number | null }) {
+function NumCell({
+  value,
+  pct,
+  missing,
+}: {
+  value: number | null;
+  pct: number | null;
+  missing?: string;
+}) {
+  if (missing)
+    return (
+      <td className="px-3 py-2.5 text-right text-xs text-muted-foreground">
+        {missing}
+      </td>
+    );
   return (
     <td className="px-3 py-2.5 text-right tabular-nums">
       <div>{formatNumber(value)}</div>

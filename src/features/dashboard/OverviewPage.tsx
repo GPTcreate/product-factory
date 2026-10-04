@@ -1,3 +1,5 @@
+import { dataAvailability } from "@/features/factory/model";
+import { BusinessOverview } from "@/features/factory/BusinessOverview";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { AlertTriangle, ArrowRight } from "lucide-react";
@@ -18,7 +20,6 @@ import { TopMovers } from "@/features/dashboard/TopMovers";
 import { ComparisonTable } from "@/features/dashboard/ComparisonTable";
 import { CoveragePanel } from "@/features/dashboard/CoveragePanel";
 import { RefreshQueue } from "@/features/dashboard/RefreshQueue";
-import { BriefingCard } from "@/features/dashboard/BriefingCard";
 import { PortfolioTrajectorySection } from "@/features/dashboard/PortfolioTrajectorySection";
 import { cn } from "@/lib/utils";
 import { usePrivacyMode } from "@/lib/privacy";
@@ -46,6 +47,13 @@ export function OverviewPage() {
         </div>
         <RangeSelector days={days} onChange={setDays} />
       </div>
+
+      {insights.data && (
+        <BusinessOverview
+          products={insights.data.sitesWithStatuses}
+          days={days}
+        />
+      )}
 
       {/* Data + insights (range-driven) */}
       {insights.isLoading ? (
@@ -91,7 +99,16 @@ export function OverviewPage() {
             </div>
           )}
 
-          <PortfolioKpis data={insights.data} />
+          <PortfolioKpis
+            data={insights.data}
+            availability={
+              dataAvailability(
+                insights.data.sitesWithStatuses,
+                insights.data.raw,
+                days,
+              ).portfolio
+            }
+          />
 
           <PortfolioTrajectorySection
             analytics={insights.data.raw.analytics.filter((r) =>
@@ -101,8 +118,6 @@ export function OverviewPage() {
               activeSiteIds.has(r.site_id),
             )}
           />
-
-          <BriefingCard />
 
           <div className="grid gap-3 lg:grid-cols-2">
             <InsightsFeed insights={insights.data.insights} />
@@ -121,7 +136,16 @@ export function OverviewPage() {
             <h2 className="text-sm font-semibold">
               All sites · last {days} days
             </h2>
-            <ComparisonTable sites={insights.data.sites} />
+            <ComparisonTable
+              sites={insights.data.sites}
+              missing={
+                dataAvailability(
+                  insights.data.sitesWithStatuses,
+                  insights.data.raw,
+                  days,
+                ).products
+              }
+            />
           </section>
         </>
       )}
