@@ -40,5 +40,8 @@ jobs:
       - name: Test
         run: npm test
 
+      - name: Database migrations and RLS
+        run: npm run test:db
+
       - name: Build
         run: npm run build
