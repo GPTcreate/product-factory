@@ -64,7 +64,7 @@ export interface SiteRow {
 export interface CoverageRow {
   siteId: string;
   siteName: string;
-  source: "gsc" | "ga4" | "bing";
+  source: "gsc" | "ga4" | "bing" | "adsense";
   lastDataDate: string | null;
   staleDays: number | null;
   hasGap: boolean;

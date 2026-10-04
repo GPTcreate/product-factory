@@ -1,3 +1,12 @@
+import type {
+  Idea,
+  FactoryWeek,
+  AdSenseDaily,
+  AnalyticsExtended,
+  EventDaily,
+  SearchAudience,
+  ProductFields,
+} from "../../supabase/functions/_shared/product";
 import { subDays, format } from "date-fns";
 import { supabase } from "@/lib/supabase";
 import { fetchAllPages } from "@/lib/paginate";
@@ -304,7 +313,7 @@ export async function invokeManualSync(
 }
 
 // Site management -------------------------------------------------------------
-export interface SiteFormValues {
+export interface SiteFormValues extends Partial<ProductFields> {
   name: string;
   domain: string;
   website_url: string;
@@ -443,7 +452,7 @@ export async function getInsights(days: number): Promise<InsightsWithSites> {
 // Full data export ------------------------------------------------------------
 export interface PortfolioDataExport {
   generated_at: string;
-  schema_version: 2;
+  schema_version: 3;
   retention: {
     analytics_daily: "540 days";
     search_daily: "540 days";
@@ -463,6 +472,12 @@ export interface PortfolioDataExport {
     sync_runs: SyncRun[];
     tracked_queries: TrackedQuery[];
     uptime_checks: UptimeCheck[];
+    ideas: Idea[];
+    factory_weeks: FactoryWeek[];
+    adsense_daily_metrics: AdSenseDaily[];
+    analytics_extended_daily: AnalyticsExtended[];
+    analytics_event_daily: EventDaily[];
+    search_audience_daily: SearchAudience[];
   };
   /**
    * Derived intelligence an AI agent would otherwise have to recompute from
@@ -488,6 +503,12 @@ export async function getPortfolioDataExport(): Promise<PortfolioDataExport> {
     syncRuns,
     trackedQueriesRes,
     uptimeChecks,
+    ideas,
+    weeks,
+    adsense,
+    extended,
+    events,
+    audience,
   ] = await Promise.all([
     supabase.from("sites").select("*").order("name"),
     supabase.from("integration_status").select("*").order("site_id"),
@@ -535,6 +556,41 @@ export async function getPortfolioDataExport(): Promise<PortfolioDataExport> {
         .select("*")
         .order("checked_at", { ascending: false }),
     ),
+    fetchAllPages<Idea>(() => supabase.from("ideas").select("*").order("id")),
+    fetchAllPages<FactoryWeek>(() =>
+      supabase.from("factory_weeks").select("*").order("week_start"),
+    ),
+    fetchAllPages<AdSenseDaily>(() =>
+      supabase
+        .from("adsense_daily_metrics")
+        .select("*")
+        .order("product_id")
+        .order("metric_date"),
+    ),
+    fetchAllPages<AnalyticsExtended>(() =>
+      supabase
+        .from("analytics_extended_daily")
+        .select("*")
+        .order("site_id")
+        .order("metric_date"),
+    ),
+    fetchAllPages<EventDaily>(() =>
+      supabase
+        .from("analytics_event_daily")
+        .select("*")
+        .order("site_id")
+        .order("metric_date")
+        .order("event_name"),
+    ),
+    fetchAllPages<SearchAudience>(() =>
+      supabase
+        .from("search_audience_daily")
+        .select("*")
+        .order("site_id")
+        .order("metric_date")
+        .order("dimension")
+        .order("value"),
+    ),
   ]);
 
   if (sitesRes.error) throw sitesRes.error;
@@ -554,6 +610,12 @@ export async function getPortfolioDataExport(): Promise<PortfolioDataExport> {
     sync_runs: syncRuns,
     tracked_queries: trackedQueriesRes.data ?? [],
     uptime_checks: uptimeChecks,
+    ideas,
+    factory_weeks: weeks,
+    adsense_daily_metrics: adsense,
+    analytics_extended_daily: extended,
+    analytics_event_daily: events,
+    search_audience_daily: audience,
   };
 
   const computed = buildExportComputed({
@@ -566,7 +628,7 @@ export async function getPortfolioDataExport(): Promise<PortfolioDataExport> {
 
   return {
     generated_at: new Date().toISOString(),
-    schema_version: 2,
+    schema_version: 3,
     retention: {
       analytics_daily: "540 days",
       search_daily: "540 days",

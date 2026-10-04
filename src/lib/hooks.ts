@@ -132,6 +132,7 @@ export function useSaveSite() {
       qc.invalidateQueries({ queryKey: queryKeys.sites });
       qc.invalidateQueries({ queryKey: ["insights"] });
       qc.invalidateQueries({ queryKey: queryKeys.site(site.id) });
+      qc.invalidateQueries({ queryKey: ["factory"] });
     },
   });
 }
@@ -159,6 +160,7 @@ export function useManualSync(siteId: string) {
       qc.invalidateQueries({ queryKey: ["sync-runs"] });
       qc.invalidateQueries({ queryKey: ["insights"] });
       qc.invalidateQueries({ queryKey: ["integration-statuses"] });
+      qc.invalidateQueries({ queryKey: ["factory"] });
     },
   });
 }
