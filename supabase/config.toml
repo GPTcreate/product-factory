@@ -101,3 +101,9 @@ verify_jwt = false
 
 [analytics]
 enabled = false
+
+[functions.manage-factory]
+verify_jwt = false
+
+[functions.scheduled-sync-adsense]
+verify_jwt = false
