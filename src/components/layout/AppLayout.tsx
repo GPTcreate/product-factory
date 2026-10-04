@@ -2,6 +2,8 @@ import { Suspense } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import {
   LayoutDashboard,
+  Lightbulb,
+  Factory,
   Globe,
   History,
   Database,
@@ -20,7 +22,9 @@ import { usePrivacyMode } from "@/lib/privacy";
 
 const NAV = [
   { to: "/", label: "Overview", icon: LayoutDashboard, end: true },
-  { to: "/sites", label: "Sites", icon: Globe, end: false },
+  { to: "/products", label: "Products", icon: Globe, end: false },
+  { to: "/ideas", label: "Ideas", icon: Lightbulb, end: false },
+  { to: "/factory", label: "Factory", icon: Factory, end: false },
   { to: "/sync-runs", label: "Sync history", icon: History, end: false },
   { to: "/system", label: "System", icon: Database, end: false },
   {
@@ -41,10 +45,10 @@ export function AppLayout() {
 
   return (
     <div className="min-h-screen md:flex">
-      <aside className="flex flex-col border-b border-border bg-card md:w-60 md:border-b-0 md:border-r">
+      <aside className="flex flex-col border-b border-border bg-card md:w-60 md:shrink-0 md:border-b-0 md:border-r">
         <div className="flex items-center gap-2 px-4 py-4">
           <img src="/favicon.svg" alt="" className="h-7 w-7" />
-          <span className="text-sm font-semibold">Site Analytics</span>
+          <span className="text-sm font-semibold">Product Factory</span>
         </div>
         <nav className="flex gap-1 overflow-x-auto px-2 pb-2 md:flex-col md:gap-0.5 md:pb-4">
           {NAV.map(({ to, label, icon: Icon, end }) => (
@@ -87,7 +91,7 @@ export function AppLayout() {
           </p>
         </div>
       </aside>
-      <main className="flex-1 p-4 md:p-8">
+      <main className="min-w-0 flex-1 p-4 md:p-8">
         <Suspense
           fallback={
             <div className="flex items-center justify-center py-20">
