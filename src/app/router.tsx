@@ -15,6 +15,16 @@ import { Spinner } from "@/components/ui/spinner";
 
 // Code-split the authenticated dashboard pages so the heavy charting library
 // (Recharts) is only fetched after login, not on the login screen.
+const IdeasPage = lazy(() =>
+  import("@/features/factory/IdeasPage").then((m) => ({
+    default: m.IdeasPage,
+  })),
+);
+const FactoryPage = lazy(() =>
+  import("@/features/factory/FactoryPage").then((m) => ({
+    default: m.FactoryPage,
+  })),
+);
 const OverviewPage = lazy(() =>
   import("@/features/dashboard/OverviewPage").then((m) => ({
     default: m.OverviewPage,
@@ -135,6 +145,10 @@ export const router = createBrowserRouter(
           element: <AppLayout />,
           children: [
             { path: "/", element: <OverviewPage /> },
+            { path: "/ideas", element: <IdeasPage /> },
+            { path: "/factory", element: <FactoryPage /> },
+            { path: "/products", element: <SitesPage /> },
+            { path: "/products/:siteId", element: <SiteDetailPage /> },
             { path: "/sites", element: <SitesPage /> },
             { path: "/sites/:siteId", element: <SiteDetailPage /> },
             { path: "/sync-runs", element: <SyncRunsPage /> },
