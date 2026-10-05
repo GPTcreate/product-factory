@@ -1,5 +1,7 @@
 # Product Factory v0.1 — implementation checkpoint
 
+**Current live state (2026-10-05):** GitHub publication, Cloudflare deployment, Supabase infrastructure and P001 registration are complete. Real provider connections and automated collection remain pending. See [OPERATIONS_CHECKPOINT.md](OPERATIONS_CHECKPOINT.md) for observed production evidence, TODOs and Known Issues; the validation below records implementation checks.
+
 ## Completed locally
 
 - Four supplied documents read in the requested order; requirements retained in this docs directory.
@@ -29,13 +31,12 @@
 
 Browser testing used disposable synthetic data and a test harness that is excluded from the production build. It does not prove real provider access, actual GoTrue MFA enrollment or hosted scheduler execution. The normal Chromium download endpoint returned invalid archives in this environment; an npm-distributed Chromium binary was used for the same Playwright checks.
 
-## Still pending — not claimed as deployed or live
+## Still pending — live acceptance
 
-1. GitHub fork and push: the connected GitHub tool exposes identity/read/commit operations, but no repository/fork creation. Browser fallback needs user approval. No write was made to upstream or another GitHub account.
-2. Supabase project selection/creation, hosted migrations, admin allowlist and first TOTP enrollment.
-3. Google/AdSense OAuth and Bing credentials, then live P001 data reconciliation.
-4. Cloudflare account connection, build-time environment settings, deployment and live auth/CORS/SPA smoke tests.
-5. Confirm one scheduled run per provider in the real project, including 04:30 UTC AdSense job.
+1. Google/AdSense OAuth and Bing credentials, verified P001 property mappings and real report reconciliation.
+2. Dedicated automation secret, successful authenticated invocation and controlled scheduler activation.
+3. Confirm one scheduled run per connected provider in the real project, including 04:30 UTC AdSense when eligible.
+4. Cloud Browser administrator/MFA acceptance remains a Known Issue and must not block unrelated operational work. Mobile login/MFA is owner-confirmed.
 
 ## Operating limits
 
@@ -59,6 +60,6 @@ Browser testing used disposable synthetic data and a test harness that is exclud
 - `src/test/factory.test.ts`, `scripts/test-db.mjs`, `scripts/test-browser.mjs`: contract, adapter, DB and browser regression tests.
 - `README.md`, `docs/{SETUP,ADSENSE,TESTING,STATUS}.md`, `.env.example`, `supabase/.env.example`: handoff and setup.
 
-## Next authorized implementation step after approval
+## Next operational step
 
-Use the verified `GPTcreate` account to fork `jafforgehq/site-analytics-tool`, restore/push the prepared implementation branch, then request only the necessary Supabase/Google/Cloudflare account approvals as those steps are reached. The user should not need to clone or prepare a repository manually.
+Complete the consolidated provider authorization prerequisites in `OPERATIONS_CHECKPOINT.md`, then validate first real reports and scheduled runs. Do not repeat the already-completed repository creation or deployment setup.

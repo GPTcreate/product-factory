@@ -2,6 +2,15 @@
 
 Production: https://product-factory-1ov.pages.dev/
 
+## Current status — 2026-10-05
+
+- Known Issue; the owner explicitly requested that it not block other operational work.
+- The diagnostic correction is deployed in `200ad5a5d37efb0f969e0a6999479d1e23306e42`; Cloudflare Pages reported success at 00:20:13 UTC.
+- A subsequent secure Cloud Browser sign-in attempt displayed **Could not reach the sign-in service. Check your connection and try again.** This confirms the deployed network-error classification; the underlying transport failure remains undetermined.
+- Mobile login and MFA success are owner-confirmed. No Cloud Browser administrator/MFA success has been observed.
+- Do not reset passwords, change MFA, or retry this issue as a prerequisite for provider setup.
+- See `OPERATIONS_CHECKPOINT.md` for current live connection state. The table below preserves the earlier investigation, not current deployment status.
+
 ## Findings
 
 | Check | Evidence / limitation |
@@ -28,5 +37,5 @@ Production: https://product-factory-1ov.pages.dev/
 - 17 targeted tests passed, including returned and thrown network failures and checks against exposing raw error content.
 - TypeScript/Vite build and targeted ESLint passed.
 - Changed code passed a targeted secret-pattern scan and `git diff --check`.
-- Deployment pending: Git push dry-run failed because no GitHub credential was available. Browser upload is currently blocked by native credential protection. No correction has been deployed.
+- Historical pre-deployment blocker: Git push dry-run had no credential and browser upload was blocked. Resolved by GitHub App installation; the correction is now deployed as recorded above.
 - Mobile login/MFA success is user-confirmed. Cloud Browser login failure was previously observed; the underlying cause is still undetermined. The terminal's Cloudflare 1010 response must not be presented as proof of the Cloud Browser Auth failure cause.
