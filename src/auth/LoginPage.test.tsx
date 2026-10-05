@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
@@ -21,6 +21,9 @@ function renderLogin() {
 }
 
 describe("LoginPage", () => {
+  beforeEach(() => signIn.mockReset());
+  afterEach(() => vi.restoreAllMocks());
+
   it("shows a validation error and does not call Supabase on empty submit", async () => {
     const user = userEvent.setup();
     renderLogin();
@@ -36,4 +39,29 @@ describe("LoginPage", () => {
     expect(screen.queryByText(/sign up/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/create account/i)).not.toBeInTheDocument();
   });
+
+  it.each(["returned", "thrown"])(
+    "does not report a %s network failure as incorrect credentials",
+    async (mode) => {
+      const error = { name: "AuthRetryableFetchError", status: 0 };
+      if (mode === "returned") signIn.mockResolvedValue({ error });
+      else signIn.mockRejectedValue(error);
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const user = userEvent.setup();
+      renderLogin();
+      await user.type(screen.getByLabelText("Email"), "test@example.com");
+      await user.type(screen.getByLabelText("Password"), "fixture-password");
+      await user.click(screen.getByRole("button", { name: /sign in/i }));
+      expect(
+        await screen.findByText(/Could not reach the sign-in service/),
+      ).toBeInTheDocument();
+      expect(screen.queryByText("Invalid email or password.")).toBeNull();
+      expect(screen.getByRole("button", { name: /sign in/i })).toBeEnabled();
+      expect(warn).toHaveBeenCalledWith("Sign-in failed", {
+        category: "network",
+        status: 0,
+        code: undefined,
+      });
+    },
+  );
 });

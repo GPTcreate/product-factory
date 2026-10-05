@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert } from "@/components/ui/alert";
 import { AuthShell } from "@/auth/AuthShell";
+import { describeLoginError } from "@/auth/loginError";
 
 const schema = z.object({
   email: z.string().email("Enter a valid email address"),
@@ -35,14 +36,17 @@ export function LoginPage() {
       return;
     }
 
-    const { error } = await supabase.auth.signInWithPassword(parsed.data);
-    if (error) {
-      // Generic message - never reveal whether the email exists.
-      setFormError("Invalid email or password.");
-      return;
+    try {
+      const { error } = await supabase.auth.signInWithPassword(parsed.data);
+      if (error) throw error;
+      // AuthProvider resolves the new session; guards route to MFA or dashboard.
+      navigate("/", { replace: true });
+    } catch (error) {
+      const failure = describeLoginError(error);
+      setFormError(failure.text);
+      // Only allowlisted metadata: never log raw errors, form values or tokens.
+      console.warn("Sign-in failed", failure.diagnostic);
     }
-    // AuthProvider resolves the new session; guards route to MFA or dashboard.
-    navigate("/", { replace: true });
   });
 
   return (
