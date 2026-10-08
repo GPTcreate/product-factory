@@ -1,5 +1,6 @@
 import { AnalyticsDetail } from "@/features/factory/AnalyticsDetail";
 import { RevenuePanel } from "@/features/factory/RevenuePanel";
+import { ConnectionDiagnostics } from "./ConnectionDiagnostics";
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ExternalLink, Pencil } from "lucide-react";
@@ -152,6 +153,8 @@ export function SiteDetailPage() {
         />
       )}
 
+      <ConnectionDiagnostics site={site} days={days} />
+
       {/* Integration health */}
       <div className="grid gap-3 sm:grid-cols-3">
         {site.statuses.map((status) => {
@@ -265,6 +268,8 @@ export function SiteDetailPage() {
         <h2 className="text-sm font-semibold">Recent sync runs</h2>
         {runsQuery.isLoading ? (
           <Skeleton className="h-40" />
+        ) : runsQuery.isError ? (
+          <ErrorState onRetry={() => void runsQuery.refetch()} />
         ) : runsQuery.data && runsQuery.data.length > 0 ? (
           <SyncRunsTable runs={runsQuery.data} hideSite />
         ) : (

@@ -2,7 +2,9 @@ import {
   PRODUCT_STATUSES,
   MARKETS,
 } from "../../../supabase/functions/_shared/product";
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
+import guideUrl from "../../../docs/PRODUCT_CREATION_AND_FACTORY_ONBOARDING.md?url";
+import { onboardingError } from "@/lib/site-onboarding";
 import { useForm } from "react-hook-form";
 import { X } from "lucide-react";
 import { useDeleteSite, useSaveSite } from "@/lib/hooks";
@@ -31,7 +33,7 @@ function toDefaults(site?: Site): SiteFormValues {
     gsc_property: site?.gsc_property ?? "",
     ga4_property_id: site?.ga4_property_id ?? "",
     bing_site_url: site?.bing_site_url ?? "",
-    is_active: site?.is_active ?? true,
+    is_active: site?.is_active ?? false,
   };
 }
 
@@ -41,7 +43,9 @@ export function SiteFormDialog({
   onClose,
   onDeleted,
   preset,
+  products = [],
 }: {
+  products?: Site[];
   preset?: Partial<SiteFormValues>;
   mode: "create" | "edit";
   site?: Site;
@@ -49,6 +53,7 @@ export function SiteFormDialog({
   onDeleted?: () => void;
 }) {
   const mutation = useSaveSite();
+  const sectionId = useId();
   const deletion = useDeleteSite();
   const [formError, setFormError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -84,13 +89,16 @@ export function SiteFormDialog({
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<SiteFormValues>({
     defaultValues: { ...toDefaults(site), ...preset },
   });
 
   const onSubmit = handleSubmit((values) => {
-    setFormError(null);
+    const validation = onboardingError(values, products, site?.id);
+    setFormError(validation);
+    if (validation) return;
     mutation.mutate(
       {
         action: mode === "create" ? "create" : "update",
@@ -134,8 +142,43 @@ export function SiteFormDialog({
           </button>
         </div>
 
+        <nav
+          aria-label="Registration steps"
+          className="mt-4 flex flex-wrap gap-2 text-sm"
+        >
+          {["Product information", "Provider identifiers", "Readiness"].map(
+            (label, index) => (
+              <button
+                type="button"
+                className="rounded border px-2 py-1"
+                key={label}
+                onClick={() =>
+                  document
+                    .getElementById(`${sectionId}-${index}`)
+                    ?.scrollIntoView({ block: "start" })
+                }
+              >
+                {index + 1}. {label}
+              </button>
+            ),
+          )}
+        </nav>
+        <a
+          className="mt-2 inline-block text-sm text-primary underline"
+          href={guideUrl}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Read onboarding guide
+        </a>
         <form onSubmit={onSubmit} className="mt-4 space-y-3" noValidate>
           {formError && <Alert tone="error">{formError}</Alert>}
+          <h3 id={`${sectionId}-0`} className="font-semibold">
+            1. Product information
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            Status tracks the business lifecycle. It does not enable collection.
+          </p>
 
           <div className="grid grid-cols-2 gap-3">
             <label className="text-sm">
@@ -208,6 +251,13 @@ export function SiteFormDialog({
             </Field>
           </div>
 
+          <h3 id={`${sectionId}-1`} className="font-semibold">
+            2. Provider identifiers
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            Only enter identifiers you have verified. Configured does not mean
+            authentication or report access has succeeded.
+          </p>
           <Field
             label="GSC property"
             hint="Domain property: sc-domain:example.com · URL-prefix: full URL"
@@ -261,6 +311,40 @@ export function SiteFormDialog({
             <input type="checkbox" {...register("is_active")} />
             Active
           </label>
+          <h3 id={`${sectionId}-2`} className="font-semibold">
+            3. Readiness before saving
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            Active includes this product in scheduled collection and uptime
+            checks when existing jobs are enabled. New products start inactive.
+            This form cannot verify credentials or scheduled jobs.
+          </p>
+          <ul className="space-y-1 text-xs" aria-label="Readiness checks">
+            <li>
+              Product information:{" "}
+              {watch("name") && watch("domain") && watch("website_url")
+                ? "entered; validation occurs on save"
+                : "required fields missing"}
+            </li>
+            <li>
+              Providers:{" "}
+              {[
+                watch("ga4_property_id") && "GA4",
+                watch("gsc_property") && "GSC",
+                watch("bing_site_url") && "Bing",
+                watch("adsense_enabled") && "AdSense",
+              ]
+                .filter(Boolean)
+                .join(", ") || "none configured; registration can proceed"}
+            </li>
+            <li>Provider report access and scheduled collection: unverified</li>
+            <li>
+              Collection eligibility:{" "}
+              {watch("is_active")
+                ? "active; confirm readiness before saving"
+                : "inactive until you enable it"}
+            </li>
+          </ul>
 
           <div className="flex items-center justify-between gap-2 pt-2">
             {mode === "edit" && site ? (
@@ -314,8 +398,8 @@ export function SiteFormDialog({
         </form>
 
         <p className="mt-3 text-xs text-muted-foreground">
-          Integrations enable automatically for whichever provider ids you fill
-          in.
+          Provider identifiers configure integrations. Verify report access and
+          original run evidence separately after registration.
         </p>
       </div>
     </div>

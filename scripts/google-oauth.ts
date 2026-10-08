@@ -1,138 +1,129 @@
-/**
- * One-time helper to mint a Google OAuth refresh token for the GSC + GA4
- * background syncs. Run locally:
- *
- *   GOOGLE_CLIENT_ID=... GOOGLE_CLIENT_SECRET=... npm run oauth:google
- *
- * Prerequisites in Google Cloud Console:
- *   - Enable the Search Console API and the Google Analytics Data API.
- *   - Configure the OAuth consent screen (your Google account may need to be a
- *     test user while the app is in testing).
- *   - Create an OAuth client (type: Web application) and add the redirect URI
- *     printed below to its "Authorized redirect URIs".
- *
- * The refresh token is printed ONCE. Copy it into the Supabase Edge Function
- * secret GOOGLE_REFRESH_TOKEN. It is never written to a file.
- */
+﻿/** Operator-only helper. Requires an inherited private pipe at fd 3. */
 import { createServer } from "node:http";
 import { randomBytes } from "node:crypto";
-
-const SCOPES = [
-  "https://www.googleapis.com/auth/webmasters.readonly",
-  "https://www.googleapis.com/auth/analytics.readonly",
-  "https://www.googleapis.com/auth/adsense.readonly",
-];
+import { exchangeAndDeliver } from "./oauth-exchange";
+import { openPrivateTransport } from "./oauth-private-transport";
 
 const clientId = process.env.GOOGLE_CLIENT_ID;
 const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 const port = Number(process.env.GOOGLE_OAUTH_PORT ?? 5179);
-const redirectUri =
-  process.env.GOOGLE_OAUTH_REDIRECT ??
-  `http://localhost:${port}/oauth2callback`;
-
-if (!clientId || !clientSecret) {
+const redirectUri = `http://127.0.0.1:${port}/oauth2callback`;
+let transport: ReturnType<typeof openPrivateTransport>;
+try {
+  if (
+    !clientId ||
+    !clientSecret ||
+    !Number.isInteger(port) ||
+    port < 1024 ||
+    port > 65535
+  )
+    throw new Error();
+  transport = openPrivateTransport();
+  if (
+    process.env.GOOGLE_OAUTH_REDIRECT &&
+    process.env.GOOGLE_OAUTH_REDIRECT !== redirectUri
+  )
+    throw new Error();
+} catch {
   console.error(
-    "Missing GOOGLE_CLIENT_ID and/or GOOGLE_CLIENT_SECRET in the environment.",
+    "OAuth requires configured client environment, a loopback redirect and private pipes at fd 3 and stdin. See docs/OAUTH_HELPER.md.",
   );
   process.exit(1);
 }
-
-const state = randomBytes(16).toString("hex");
-
+const state = randomBytes(32).toString("hex");
 const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
 authUrl.search = new URLSearchParams({
-  client_id: clientId,
+  client_id: clientId!,
   redirect_uri: redirectUri,
   response_type: "code",
-  scope: SCOPES.join(" "),
+  scope: ["webmasters.readonly", "analytics.readonly", "adsense.readonly"]
+    .map((s) => `https://www.googleapis.com/auth/${s}`)
+    .join(" "),
   access_type: "offline",
   include_granted_scopes: "true",
   prompt: "consent",
   state,
 }).toString();
-
-interface TokenResponse {
-  access_token?: string;
-  refresh_token?: string;
-  expires_in?: number;
-  error?: string;
-  error_description?: string;
-}
-
-async function exchangeCode(code: string): Promise<TokenResponse> {
-  const res = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      code,
-      client_id: clientId!,
-      client_secret: clientSecret!,
-      redirect_uri: redirectUri,
-      grant_type: "authorization_code",
-    }),
-  });
-  return (await res.json()) as TokenResponse;
-}
-
+let busy = false;
 const server = createServer(async (req, res) => {
-  const url = new URL(req.url ?? "/", `http://localhost:${port}`);
+  if (req.headers.host !== `127.0.0.1:${port}` || req.method !== "GET") {
+    res.writeHead(400).end("Invalid request");
+    return;
+  }
+  const url = new URL(req.url ?? "/", redirectUri);
+  if (url.pathname === "/authorize" && !busy) {
+    res
+      .writeHead(302, {
+        Location: authUrl.toString(),
+        "Cache-Control": "no-store",
+      })
+      .end();
+    return;
+  }
   if (url.pathname !== "/oauth2callback") {
     res.writeHead(404).end("Not found");
     return;
   }
-
-  const finish = (message: string) => {
-    res.writeHead(200, { "Content-Type": "text/html" });
-    res.end(
-      `<html><body style="font-family:sans-serif">${message}</body></html>`,
-    );
-  };
-
+  if (busy) {
+    res.writeHead(409).end("Already processing");
+    return;
+  }
   if (url.searchParams.get("state") !== state) {
-    finish("State mismatch - please re-run the script.");
-    console.error("\nState mismatch. Aborting for safety.");
-    server.close(() => process.exit(1));
+    res.writeHead(400).end("Invalid state");
     return;
   }
-
+  busy = true;
   const code = url.searchParams.get("code");
-  if (!code) {
-    finish("No authorization code returned.");
-    console.error("\nNo code in callback. Aborting.");
-    server.close(() => process.exit(1));
-    return;
-  }
-
-  const tokens = await exchangeCode(code);
-  if (tokens.error || !tokens.refresh_token) {
-    finish("Token exchange failed. Check the terminal.");
-    console.error(
-      `\nToken exchange failed: ${tokens.error ?? "no refresh_token returned"}.`,
-    );
-    console.error(
-      "If no refresh_token was returned, revoke the app's access in your Google account and re-run (prompt=consent forces a new one).",
-    );
-    server.close(() => process.exit(1));
-    return;
-  }
-
-  finish("Success! You can close this tab and return to the terminal.");
-
-  console.log("\n========================================================");
-  console.log("GOOGLE_REFRESH_TOKEN (copy into Supabase Edge secrets):\n");
-  console.log(tokens.refresh_token);
-  console.log("\n========================================================");
-  console.log("WARNING:");
-  console.log("  - Treat this like a password. Do NOT commit it.");
-  console.log("  - Set it as the GOOGLE_REFRESH_TOKEN function secret.");
-  console.log("  - Clear your terminal scrollback afterwards.");
-  server.close(() => process.exit(0));
+  const ok = code
+    ? await exchangeAndDeliver(
+        () =>
+          fetch("https://oauth2.googleapis.com/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+              code,
+              client_id: clientId!,
+              client_secret: clientSecret!,
+              redirect_uri: redirectUri,
+              grant_type: "authorization_code",
+            }),
+            signal: AbortSignal.timeout(30_000),
+          }),
+        transport.deliver,
+        (message) => console.log(message),
+      )
+    : false;
+  res.writeHead(200, {
+    "Content-Type": "text/plain",
+    "Cache-Control": "no-store",
+    "Referrer-Policy": "no-referrer",
+  });
+  res.end(
+    ok
+      ? "Completed. Return to the private receiver."
+      : "OAuth failed. Return to the operator.",
+  );
+  server.close(() => {
+    process.exitCode = ok ? 0 : 1;
+  });
 });
-
-server.listen(port, () => {
-  console.log(`\nListening on ${redirectUri}`);
-  console.log("\n1. Add that exact URI to your OAuth client's redirect URIs.");
-  console.log("2. Open this URL in your browser and approve access:\n");
-  console.log(authUrl.toString());
-  console.log("");
+server.on("error", () => {
+  console.error("OAuth listener failed.");
+  process.exitCode = 1;
+  clearTimeout(deadline);
+});
+server.listen(port, "127.0.0.1", () =>
+  console.log(
+    `Open http://127.0.0.1:${port}/authorize locally. Redirect URI: ${redirectUri}`,
+  ),
+);
+server.setTimeout(30_000);
+const deadline = setTimeout(() => {
+  console.error("OAuth session expired.");
+  server.close();
+  process.exitCode = 1;
+}, 5 * 60_000);
+server.on("close", () => {
+  clearTimeout(deadline);
+  transport.close();
 });

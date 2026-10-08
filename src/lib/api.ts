@@ -210,6 +210,7 @@ export async function getIntegrationStatuses(
 }
 
 export interface SyncRunFilters {
+  runId?: string;
   siteId?: string;
   source?: SyncSource;
   status?: SyncStatus;
@@ -232,6 +233,7 @@ export async function getSyncRuns(
     .order("started_at", { ascending: false })
     .limit(filters.limit ?? 100);
 
+  if (filters.runId) query = query.eq("id", filters.runId);
   if (filters.siteId) query = query.eq("site_id", filters.siteId);
   if (filters.source) query = query.eq("source", filters.source);
   if (filters.status) query = query.eq("status", filters.status);

@@ -34,3 +34,6 @@ coverage
 
 # Local fixture browser artifacts
 test-results/
+
+# Harness agent management & inbox
+.agent/

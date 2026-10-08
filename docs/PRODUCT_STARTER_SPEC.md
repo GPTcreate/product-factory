@@ -3,6 +3,9 @@
 P002 이후 신규 서비스를 반복 생산하기 위한 공통 최소 규격이다. 모든
 서비스를 같은 프레임워크로 강제하지 않고 출시 준비와 측정만 표준화한다.
 
+제품 제작부터 Registry 등록·Sync 검증까지의 실제 절차는
+[제품 제작과 Factory 연결 가이드](PRODUCT_CREATION_AND_FACTORY_ONBOARDING.md)를 따른다.
+
 ## 공통
 
 Responsive web, 기본 error handling, 환경변수 분리, production build,

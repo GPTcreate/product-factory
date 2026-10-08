@@ -17,6 +17,10 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { SiteFormDialog } from "@/features/sites/SiteFormDialog";
 import { usePrivacyMode } from "@/lib/privacy";
+import { MetadataImportDialog } from "./MetadataImportDialog";
+import { OperationalIssues } from "./OperationalIssues";
+import type { Site } from "@/types/database";
+import type { SiteFormValues } from "@/lib/api";
 
 export function SitesPage() {
   const privacy = usePrivacyMode();
@@ -24,6 +28,11 @@ export function SitesPage() {
   const { data: sites, isLoading, isError, refetch } = useSites();
   const [adding, setAdding] = useState(false);
   const [p001, setP001] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [imported, setImported] = useState<{
+    site?: Site;
+    fields: Partial<SiteFormValues>;
+  }>();
   const now = new Date();
 
   return (
@@ -46,6 +55,33 @@ export function SitesPage() {
           Add product
         </Button>
       </div>
+
+      <Button
+        variant="secondary"
+        disabled={!sites || privacy.enabled}
+        onClick={() => setImporting(true)}
+      >
+        Import metadata
+      </Button>
+      {importing && sites && (
+        <MetadataImportDialog
+          products={sites}
+          onClose={() => setImporting(false)}
+          onApply={(site, fields) => {
+            setImporting(false);
+            setImported({ site, fields });
+          }}
+        />
+      )}
+      {imported && (
+        <SiteFormDialog
+          mode={imported.site ? "edit" : "create"}
+          site={imported.site}
+          preset={imported.fields}
+          products={sites}
+          onClose={() => setImported(undefined)}
+        />
+      )}
 
       {sites &&
         !sites.some(
@@ -151,6 +187,7 @@ export function SitesPage() {
         </div>
       )}
 
+      {sites && sites.length > 0 && <OperationalIssues sites={sites} />}
       {insights.data && (
         <section className="space-y-3">
           <h2 className="font-semibold">Product KPI comparison · 30 days</h2>
@@ -170,6 +207,7 @@ export function SitesPage() {
       {adding && (
         <SiteFormDialog
           mode="create"
+          products={sites}
           preset={
             p001
               ? {

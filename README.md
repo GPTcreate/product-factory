@@ -48,6 +48,10 @@ npx deno check supabase/functions/manage-sites/index.ts supabase/functions/manag
 
 ## 설치·배포
 
+[제품 제작과 Factory 연결 가이드](docs/PRODUCT_CREATION_AND_FACTORY_ONBOARDING.md): 새 제품의 측정·검색·공급자 권한 준비, Registry 등록, 수동·예약 Sync 검증.
+
+[제품별 준비 기록 템플릿](docs/templates/PRODUCT_ONBOARDING_TEMPLATE.md): 제품 저장소에 복사해 식별자·체크리스트·실행 증거 기록.
+
 [docs/SETUP.md](docs/SETUP.md): Supabase migration, Google/Bing/OAuth, Cloudflare Pages, P001 연결.
 
 [docs/ADSENSE.md](docs/ADSENSE.md): 공식 API 정의, 귀속 방식과 수익 계산.

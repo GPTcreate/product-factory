@@ -17,7 +17,11 @@ function gitCommit(): string {
 }
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  envDir:
+    mode === "test" || process.env.FACTORY_FIXTURE_ONLY === "1"
+      ? "tests/browser"
+      : undefined,
   define: {
     __APP_COMMIT__: JSON.stringify(gitCommit()),
   },
@@ -39,4 +43,4 @@ export default defineConfig({
       VITE_APP_URL: "http://localhost:5173",
     },
   },
-});
+}));

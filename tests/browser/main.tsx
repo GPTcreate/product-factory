@@ -7,6 +7,7 @@ import { IdeasPage } from "../../src/features/factory/IdeasPage";
 import { FactoryPage } from "../../src/features/factory/FactoryPage";
 import { SitesPage } from "../../src/features/sites/SitesPage";
 import { SiteDetailPage } from "../../src/features/sites/SiteDetailPage";
+import { SyncRunsPage } from "../../src/features/sync-runs/SyncRunsPage";
 import { OverviewPage } from "../../src/features/dashboard/OverviewPage";
 import "../../src/index.css";
 const qc = new QueryClient({
@@ -42,6 +43,7 @@ createRoot(document.getElementById("root")!).render(
             />
             <Route path="/products" element={<SitesPage />} />
             <Route path="/products/:siteId" element={<SiteDetailPage />} />
+            <Route path="/sync-runs" element={<SyncRunsPage />} />
             <Route path="/ideas" element={<IdeasPage />} />
             <Route path="/factory" element={<FactoryPage />} />
           </Routes>

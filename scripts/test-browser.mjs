@@ -1,10 +1,18 @@
 import { spawn } from "node:child_process";
 const server = spawn(
   process.execPath,
-  ["node_modules/vite/bin/vite.js", "--host", "127.0.0.1"],
+  [
+    "node_modules/vite/bin/vite.js",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "5187",
+    "--strictPort",
+  ],
   {
     env: {
       ...process.env,
+      FACTORY_FIXTURE_ONLY: "1",
       VITE_SUPABASE_URL: "https://fixture.supabase.test",
       VITE_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_fixture",
       VITE_APP_URL: "http://localhost:5173",
@@ -15,7 +23,7 @@ const server = spawn(
 process.on("exit", () => server.kill());
 for (let i = 0; i < 50; i++) {
   try {
-    if ((await fetch("http://127.0.0.1:5173/tests/browser/index.html")).ok)
+    if ((await fetch("http://127.0.0.1:5187/tests/browser/index.html")).ok)
       break;
   } catch {}
   await new Promise((r) => setTimeout(r, 100));
@@ -149,9 +157,25 @@ await page.route("https://fixture.supabase.test/**", async (route) => {
     body: JSON.stringify(data),
   });
 });
-await page.goto("http://127.0.0.1:5173/tests/browser/index.html");
+await page.goto("http://127.0.0.1:5187/tests/browser/index.html");
 await page.getByRole("link", { name: "Products", exact: true }).click();
 await page.getByRole("button", { name: "Register P001" }).click();
+await mkdir("test-results", { recursive: true });
+await page.getByRole("navigation", { name: "Registration steps" }).waitFor();
+assert.equal(
+  await page.getByLabel("Active", { exact: true }).isChecked(),
+  false,
+);
+await page.screenshot({ path: "test-results/F01-desktop.png", fullPage: true });
+await page.setViewportSize({ width: 390, height: 844 });
+assert.equal(
+  await page
+    .getByRole("dialog")
+    .evaluate((el) => el.scrollWidth <= el.clientWidth),
+  true,
+);
+await page.screenshot({ path: "test-results/F01-mobile.png", fullPage: true });
+await page.setViewportSize({ width: 1440, height: 1000 });
 await page
   .getByRole("button", { name: "Add product", exact: true })
   .last()

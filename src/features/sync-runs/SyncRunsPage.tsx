@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { X } from "lucide-react";
 import { useSites, useSyncRuns } from "@/lib/hooks";
 import type { SyncRunRow, SyncRunFilters } from "@/lib/api";
@@ -17,15 +18,26 @@ const STATUSES: SyncStatus[] = ["success", "partial", "failed", "running"];
 const TRIGGERS: TriggerType[] = ["scheduled", "manual", "backfill"];
 
 export function SyncRunsPage() {
+  const [params, setParams] = useSearchParams();
   const privacy = usePrivacyMode();
   const { data: sites } = useSites();
-  const [filters, setFilters] = useState<SyncRunFilters>({ limit: 200 });
+  const [filters, setFilters] = useState<SyncRunFilters>({
+    limit: 200,
+    siteId: params.get("siteId") ?? undefined,
+    source: SOURCES.find((s) => s === params.get("source")),
+    runId: params.get("runId") ?? undefined,
+  });
   const [selected, setSelected] = useState<SyncRunRow | null>(null);
 
   const { data: runs, isLoading, isError, refetch } = useSyncRuns(filters);
+  const focusedRun =
+    selected ??
+    (params.get("runId")
+      ? runs?.find((r) => r.id === params.get("runId"))
+      : null);
 
   const update = (patch: Partial<SyncRunFilters>) =>
-    setFilters((f) => ({ ...f, ...patch }));
+    setFilters((f) => ({ ...f, runId: undefined, ...patch }));
 
   return (
     <div className="space-y-6">
@@ -101,8 +113,18 @@ export function SyncRunsPage() {
         <SyncRunsTable runs={runs} onSelect={setSelected} />
       )}
 
-      {selected && (
-        <RunDetailPanel run={selected} onClose={() => setSelected(null)} />
+      {focusedRun && (
+        <RunDetailPanel
+          run={focusedRun}
+          onClose={() => {
+            setSelected(null);
+            setParams((p) => {
+              p.delete("runId");
+              return p;
+            });
+            setFilters((f) => ({ ...f, runId: undefined }));
+          }}
+        />
       )}
     </div>
   );
