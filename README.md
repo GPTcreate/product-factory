@@ -4,6 +4,10 @@
 
 Based on [jafforgehq/site-analytics-tool](https://github.com/jafforgehq/site-analytics-tool), upstream commit `27b1c087d84fb86762cdc4eac31d7ec06cc9dea9`. Original MIT license and attribution are preserved in [LICENSE](LICENSE). Original operator documentation is retained in [docs/UPSTREAM_README.md](docs/UPSTREAM_README.md).
 
+## 도메인 비용 정책
+
+신규 서비스는 무료 배포 주소(`*.pages.dev` 등)로 출시·검증하고, 맞춤 도메인 구매는 필수가 아닙니다. 이용 성과·유지보수·예산을 검토한 뒤 비용 승인을 받은 제품만 구매를 검토합니다. 기존 `iposcore.kr` 등 보유 도메인은 유지합니다. [무료 주소 우선 정책](docs/DOMAIN_POLICY.md)을 참고하세요.
+
 ## 구현 범위
 
 - Overview: 제품 상태, 연간 출시 / 72, 주차, 트래픽·검색·성장 분석, 제품별 AdSense 수익.
