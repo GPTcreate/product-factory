@@ -15,6 +15,29 @@ const keys = new Set([
   "GOOGLE_REFRESH_TOKEN",
 ]);
 
+// CLI token names may contain spaces. Wait for a full output line before
+// validating the official URL so a partial PTY chunk cannot become a link.
+export function readLoginURL(output) {
+  const match = output.match(
+    /https:\/\/supabase\.com\/dashboard\/cli\/login\?[^\r\n]+\r?\n/,
+  );
+  if (!match) return undefined;
+  try {
+    const url = new URL(match[0].trim());
+    if (
+      url.origin !== "https://supabase.com" ||
+      url.pathname !== "/dashboard/cli/login" ||
+      !["session_id", "token_name", "public_key"].every((key) =>
+        url.searchParams.get(key),
+      )
+    )
+      return undefined;
+    return url.href;
+  } catch {
+    return undefined;
+  }
+}
+
 /** Credential dialogs can put full secrets in accessible copy-button names.
  * Never log a filtered line or a raw snapshot: return fixed booleans only. */
 export function safeAuthPageState(snapshot) {

@@ -6,6 +6,7 @@ import { createRequire } from "node:module";
 import { resolve } from "node:path";
 import {
   readClient,
+  readLoginURL,
   requestAllowed,
   writeSecrets,
   PROJECT_REF,
@@ -138,7 +139,7 @@ function startLogin(restart = false) {
       "login",
       "--no-browser",
       "--name",
-      "Product Factory local setup",
+      "Product-Factory-local-setup",
       "--output-format",
       "text",
       "--agent",
@@ -157,20 +158,12 @@ function startLogin(restart = false) {
     loginText = (loginText + stripVTControlCharacters(bytes.toString())).slice(
       -20_000,
     );
-    const match = loginText.match(
-      /https:\/\/supabase\.com\/dashboard\/cli\/login\?[^\s]+/,
-    );
-    if (match) {
-      const url = new URL(match[0]);
-      if (
-        url.origin === "https://supabase.com" &&
-        url.pathname === "/dashboard/cli/login"
-      ) {
-        loginURL = url.href;
-        state.loginReady = true;
-        state.message =
-          "Supabase 공식 로그인 창에서 인증 후, 표시된 CLI 확인 코드를 아래 보호 입력란에 입력하세요.";
-      }
+    const completeURL = readLoginURL(loginText);
+    if (completeURL) {
+      loginURL = completeURL;
+      state.loginReady = true;
+      state.message =
+        "Supabase 공식 로그인 창에서 인증 후, 표시된 CLI 확인 코드를 아래 보호 입력란에 입력하세요.";
     }
   };
   loginChild.onData(capture);

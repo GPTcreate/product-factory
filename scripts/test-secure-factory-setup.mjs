@@ -8,7 +8,26 @@ import {
   REDIRECT,
   GOOGLE_PROJECT,
   safeAuthPageState,
+  readLoginURL,
 } from "./secure-factory-setup-core.mjs";
+
+test("CLI login links preserve spaced names and require a complete request", () => {
+  const url =
+    "https://supabase.com/dashboard/cli/login?session_id=synthetic-session&token_name=Product Factory local setup&public_key=synthetic-public-key";
+  const parsed = new URL(readLoginURL(`Open ${url}\r\nEnter code:`));
+  assert.equal(
+    parsed.searchParams.get("token_name"),
+    "Product Factory local setup",
+  );
+  assert.equal(parsed.searchParams.get("public_key"), "synthetic-public-key");
+  assert.equal(readLoginURL(url), undefined);
+  assert.equal(
+    readLoginURL(
+      "https://supabase.com/dashboard/cli/login?session_id=synthetic&token_name=Product\n",
+    ),
+    undefined,
+  );
+});
 
 const client = {
   web: {
