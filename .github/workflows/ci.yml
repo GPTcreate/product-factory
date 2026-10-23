@@ -1,10 +1,14 @@
 name: CI
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+
+permissions:
+  contents: read
 
 # Cancel superseded runs on the same branch/PR so pushing new commits doesn't
 # waste minutes on stale checks.
@@ -45,3 +49,8 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          FACTORY_FIXTURE_ONLY: "1"
+          VITE_SUPABASE_URL: https://fixture.supabase.test
+          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_fixture
+          VITE_APP_URL: http://localhost:5173
