@@ -1,6 +1,6 @@
 # Product Factory v0.1 — implementation checkpoint
 
-**2026-10-23 최신 운영 상태:** [정상화 기록](NORMALIZATION_20261023.md)을 우선 확인한다. Supabase 복구, 실제 Bing 수동·예약 수집과 uptime 예약 저장까지 확인했다. Google 본인 동의·실수집은 남아 있다. 아래 2026-10-05 내용은 당시 구현·운영 checkpoint로 보존한다.
+**2026-10-23 최신 운영 상태:** [정상화 기록](NORMALIZATION_20261023.md)을 우선 확인한다. Supabase 복구, Google OAuth 보호 저장, 잘못된 GA4 Property ID 정정, GA4·Bing 수동/예약 수집과 uptime 예약 저장까지 확인했다. Google 테스트 모드 장기 운영, GSC 소유 속성과 AdSense 승인은 남아 있다. 아래 2026-10-05 내용은 당시 구현·운영 checkpoint로 보존한다.
 
 **Current live state (2026-10-05):** GitHub publication, Cloudflare deployment, Supabase infrastructure and P001 registration are complete. Real provider connections and automated collection remain pending. See [OPERATIONS_CHECKPOINT.md](OPERATIONS_CHECKPOINT.md) for observed production evidence, TODOs and Known Issues; the validation below records implementation checks.
 

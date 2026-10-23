@@ -1,6 +1,6 @@
 # Live operations checkpoint — 2026-10-05
 
-Historical checkpoint. The [2026-10-23 normalization record](NORMALIZATION_20261023.md) supersedes current runtime status: Bing scheduled collection and persisted uptime checks now pass; Google consent and collection remain pending.
+Historical checkpoint. The [2026-10-23 normalization record](NORMALIZATION_20261023.md) supersedes current runtime status: Google consent, GA4/Bing scheduled collection and persisted uptime checks now pass. Long-term OAuth readiness, GSC ownership and AdSense approval remain pending.
 
 This document distinguishes observed production state from prepared code and unresolved provider setup. No secret values belong here.
 

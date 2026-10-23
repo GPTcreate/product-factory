@@ -28,6 +28,8 @@ CLI 링크는 PTY 출력의 완전한 한 줄을 받은 뒤 `session_id`, `token
 4. `Google 인증 준비` 후 본인이 Google 로그인·읽기 권한 동의를 완료한다. 기존 helper는 `analytics.readonly`, `webmasters.readonly`, `adsense.readonly`를 요청한다. 받은 refresh token은 fd 3과 ACK 계약을 유지하며 같은 CLI named pipe로 기존 Edge Secrets에 저장한다. 기존 Google 설정이 있으면 자동 덮어쓰기를 중단한다.
 5. agent는 System의 설정 존재 여부, 기존 자동화 인증의 Vault 연결, Bing 예약 실행, GA4 실제 수집·저장·화면 반영을 차례로 검증한다. 이 단계 전에는 인증·예약 수집 성공으로 기록하지 않는다.
 
+2026-10-23 사용자가 세 읽기 권한의 동의 진행을 명시적으로 승인했고 agent가 완료했다. Google 세 인증 항목의 실제 Edge 저장과 GA4 수동·예약 success를 확인했다. 설정 화면의 수명이 끝나도 CLI 로그인은 남을 수 있으므로, 재시작 때 기존 프로젝트 Secret 이름 접근부터 검사하고 유효하면 재로그인을 생략한다. 인증값을 다시 발급하거나 다른 프로젝트를 조회하지 않는다. 실제 수집 근거와 수정한 Property ID는 [정상화 기록](NORMALIZATION_20261023.md)을 따른다.
+
 `npm run test:auth-setup`은 접근성 버튼 이름에 Secret이 포함된 화면의 안전 요약, 프로젝트·콜백 검증, Host/Origin/CSRF 거부, dotenv 주입 방지, 실제 Windows named pipe 전달과 미수락 실패를 synthetic 값으로 검사한다. 실제 로컬 서버의 외부 origin POST HTTP 403도 확인했다. Supabase 실제 Secret 저장과 Google 실제 동의는 본인 인증 후 별도로 확인한다.
 
 Google 생성 모달의 **복사 버튼 접근성 이름에 비밀값 전체가 포함될 수 있다**. 전체 AX tree나 필터링한 버튼 문자열을 출력하지 않는다. `safeAuthPageState`처럼 고정 boolean만 반환하고, Secret 화면의 스크린샷도 기록하지 않는다. 이번 최초 생성값 한 건은 도구 응답에 포함돼 운영에 사용하지 않고 해당 미사용 클라이언트를 삭제해 무효화했다. 사용자 승인 후 새 클라이언트를 생성하고 출력 없이 보호 전달했다. 폐기본은 복원하지 않는다.

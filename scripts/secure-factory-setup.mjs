@@ -339,9 +339,18 @@ server.on("error", () => {
   console.error("Local setup could not start; no credentials were printed.");
   process.exitCode = 1;
 });
-server.listen(port, "127.0.0.1", () => {
+server.listen(port, "127.0.0.1", async () => {
   console.log(`Local protected setup: http://127.0.0.1:${port}`);
-  startLogin();
+  try {
+    // A setup window may expire while the official CLI login remains valid.
+    // Confirm access to this existing project before asking for another login.
+    await names();
+    state.loggedIn = true;
+    state.message = "기존 CLI 로그인을 확인했습니다. 예약 인증을 보존합니다.";
+    await prepareAutomation();
+  } catch {
+    startLogin();
+  }
 });
 function stop() {
   try {
