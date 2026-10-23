@@ -12,6 +12,7 @@ import { MfaSetupPage } from "@/auth/MfaSetupPage";
 import { MfaChallengePage } from "@/auth/MfaChallengePage";
 import { NotAuthorizedPage } from "@/auth/NotAuthorizedPage";
 import { Spinner } from "@/components/ui/spinner";
+import { RouteError } from "./RouteError";
 
 // Code-split the authenticated dashboard pages so the heavy charting library
 // (Recharts) is only fetched after login, not on the login screen.
@@ -104,6 +105,7 @@ export const router = createBrowserRouter(
     // Public synthetic demo - it has no auth or Supabase data queries.
     {
       path: "/demo",
+      errorElement: <RouteError />,
       element: demoElement(<DemoLayout />),
       children: [
         { index: true, element: demoElement(<DemoOverviewPage />) },
@@ -140,6 +142,7 @@ export const router = createBrowserRouter(
     // Protected dashboard (aal2 + admin) --------------------------------------
     {
       element: <RequireDashboard />,
+      errorElement: <RouteError />,
       children: [
         {
           element: <AppLayout />,

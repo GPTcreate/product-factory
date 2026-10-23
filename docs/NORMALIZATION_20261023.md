@@ -48,3 +48,27 @@ DB migration을 먼저 적용하고 기존 `manage-factory`만 새 버전으로 
 문제 발생 시 이전 Pages deployment로 프런트엔드를 복구할 수 있다. 새 테이블의 사용자 기록을 삭제하는 migration rollback은 자동 수행하지 않는다. 관리 함수도 기존 Ideas/Week 동작을 보존한다. 자동화·알림 기능의 영향은 해당 job만 중지해 격리한다.
 
 원래 미추적 문서는 `.agent/checkpoints/normalization-20261023-114448`에 백업하고 보존했다. 최신 GitHub 문서 commit `b94abd4`를 fast-forward로 가져온 뒤 `codex/normalize-20261023`에서 작업했다. 공용 core와 다른 프로젝트·프로세스는 변경하지 않았다.
+
+## 실제 운영 확인과 남은 본인 작업
+
+기능 소스는 `e16962f`, CI 설정은 `da2647d`에 반영했다. [GitHub CI 실제 실행](https://github.com/GPTcreate/product-factory/actions/runs/39894635479)은 모든 단계가 성공했다. 이후 운영 확인에서 배포 교체 직후 이전 lazy module을 찾지 못하는 문제를 발견해 보호 화면에 수동 새로고침 복구 안내를 추가했다. 원본 오류·내부 경로는 사용자 화면에 노출하지 않고 입력 손실 안내를 함께 표시한다. 이 복구 화면의 회귀 테스트 2개를 추가했다. 최종 release SHA와 Pages·CI 결과는 `.agent/evidence/normalization-20261023/progress.json`에 기록한다.
+
+| 연결 | 실제 확인 | 남은 일 |
+| --- | --- | --- |
+| Supabase Auth/DB | ACTIVE_HEALTHY, 본인 로그인·관리자 MFA와 실제 데이터 읽기 성공 | 없음 |
+| Bing 수동 수집 | 11행 저장, 10 clicks / 87 impressions | 예약 인증 복원 후 cron 검증 |
+| Google GA4 | 실제 실행 config_missing, OAuth 세 항목 미설정 | 기존 OAuth 설정 복원과 본인 동의·속성 권한 확인 |
+| GSC | 기존 Registry에서 disabled, 속성 매핑 없음 | 소유권·정확한 속성 확인 후 매핑 |
+| AdSense | 기존 Registry disabled, ADSENSE_ACCOUNT 미설정 | 승인된 계정·사이트가 있을 때만 기존 연결 복원 |
+| Provider 예약 수집·uptime | AUTOMATION_SECRET와 Vault automation_secret 미설정 | 기존 인증을 보호된 경로로 복원 후 준비·검증 |
+| DB 운영 알림 | 예약 실행 2026-10-23 03:17 UTC succeeded, 매시 5분 정규 일정 복원 | DB 자체가 정지되면 함께 정지됨 |
+
+기존 인증이 없으면 새 발급·교체하지 않고 운영자 판단을 기다린다. Secret 값을 채팅이나 문서로 전달하지 않는다. 미설정 provider cron을 켜거나 반복 실패를 만들지 않았다. Supabase가 다시 정지하지 않는다는 보장은 하지 않으며 유료 요금제 전환도 수행하지 않았다.
+
+본인은 [기존 Supabase 프로젝트의 Edge Secrets](https://supabase.com/dashboard/project/nemkjxdxswwtrlufcykp/functions/secrets)에서 보호된 저장소의 기존 Google OAuth 세 항목과 AUTOMATION_SECRET을 복원한다. 필요한 Google 로그인·동의는 본인이 처리한다. 이후 System의 설정 존재 진단으로 확인하고 기존 자동화 인증 연결 → Bing 예약 실행 → Google 수동 실행 → 준비된 provider 예약 실행 순서로 검증한다. 값을 찾을 수 없다면 재발급 없이 중단한다. GSC 속성·AdSense 승인 정보를 추측해서 넣지 않는다.
+
+Supabase 보안 advisor의 기존 경고는 `pg_net`의 public 설치, 관리자/MFA를 본문에서 검사하는 기존 SECURITY DEFINER RPC, leaked-password protection 미설정이다. 새 운영 테이블은 RLS를 적용했다. RPC는 실제 본문 권한 검사를 확인했으며 기존 호출을 끊는 일괄 권한 변경이나 extension 이동은 수행하지 않았다. [extension 안내](https://supabase.com/docs/guides/database/database-linter?lint=0014_extension_in_public), [RPC 안내](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable), [Auth 안내](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
+
+## 로컬 실행
+
+기존 `.env.local`을 유지한다. 저장소에서 `npm ci` 후 `npm run dev -- --host 127.0.0.1 --port 5173 --strictPort`를 실행하고 `http://127.0.0.1:5173`으로 접속한다. 이번 실행에서 서버 기동과 HTTP 200을 확인했다. 운영 도메인과 localhost의 브라우저 로그인 세션은 별개다. 검증 명령은 `npm run typecheck`, `npm test`, `npm run test:db`, `npm run lint`, `npm run build`다. Windows CRLF 환경의 포맷 확인은 `npm run format:check -- --end-of-line auto`를 사용할 수 있다.

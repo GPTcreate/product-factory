@@ -148,7 +148,7 @@ Google의 기존 인증은 사용할 서비스의 읽기 scope와 새 속성 접
 
 소비자 제품에는 Factory의 service role·자동화 키·공급자 refresh token을 넣지 않는다. 제품이 Factory 관리 함수를 호출하거나 직접 Factory DB에 쓰는 구조도 필요하지 않다. 제품 자체가 Supabase를 쓴다면 그 제품의 데이터 경계와 권한을 따로 설계한다.
 
-현재 Factory의 `oauth:google` helper는 refresh token을 stdout에 출력한다. 본인 인증이 필요할 때 보호된 절차로 처리하며 agent의 자동 실행·수집 대상으로 사용하지 않는다.
+현재 Factory의 `oauth:google` helper는 상속된 private pipe로만 refresh token을 전달한다. 일반 터미널에서 단독 실행하면 보안 전달 경로가 없어 중단된다. 본인 인증이 필요하면 [OAuth 보호 전달 절차](OAUTH_HELPER.md)에 따라 운영자의 기존 보안 저장 경로를 사용하며 값을 채팅·로그·파일로 전달하지 않는다.
 
 ## 7 Factory 제품 등록
 
