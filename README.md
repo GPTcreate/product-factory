@@ -10,6 +10,8 @@ Based on [jafforgehq/site-analytics-tool](https://github.com/jafforgehq/site-ana
 
 ## 구현 범위
 
+2026-10-23 운영 복구와 추가 기능: 제품 상세 **Launch / Work / Review**, Factory의 **주간 운영 리포트**, System의 **서버 설정 진단과 예약 운영 알림**. [정상화·검증·적용 기록](docs/NORMALIZATION_20261023.md).
+
 - Overview: 제품 상태, 연간 출시 / 72, 주차, 트래픽·검색·성장 분석, 제품별 AdSense 수익.
 - Products: Product Code / Market / Language / Level / Version / Status, CRUD, P001 IPOScore 등록 프리셋.
 - Product Detail: Overview / Traffic / Search / Revenue / Events / Health.

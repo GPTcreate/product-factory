@@ -1,5 +1,7 @@
 # 제품 제작과 Product Factory 연결 가이드
 
+2026-10-23 갱신: Products의 metadata 미리보기로 JSON을 읽고 선택한 필드를 등록 폼에 채울 수 있다. 저장 전 검토는 유지한다. 제품별 준비 상태와 증거는 제품 상세 Launch, 개선 작업은 Work, 목표·평가는 Review에서 저장한다. [정상화와 운영 기능](NORMALIZATION_20261023.md).
+
 새 제품을 기획하고 구현할 때 준비할 정보, 측정 이벤트, 검색 등록, Factory 등록과 Sync 검증을 정리한다. 제품 개발 담당자는 착수 전에 이 가이드를 읽고 [제품별 준비 기록 템플릿](templates/PRODUCT_ONBOARDING_TEMPLATE.md)을 해당 제품 저장소에 복사해 채운다.
 
 **제품 → GA4·검색·광고 서비스에 측정값 전송 → Factory가 공급자 API에서 지표 수집 → 제품별 Dashboard에서 확인**하는 흐름이다. 제품 등록, 공급자 접근권한, 수동 수집 성공, 예약 수집 성공은 각각 확인한다.

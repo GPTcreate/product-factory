@@ -19,7 +19,10 @@ export function openPrivateTransport(): {
   receiver.on("error", () => {});
   return {
     async deliver(token) {
-      const bytes = Buffer.from(`${JSON.stringify({ refresh_token: token })}\n`, "utf8");
+      const bytes = Buffer.from(
+        `${JSON.stringify({ refresh_token: token })}\n`,
+        "utf8",
+      );
       try {
         await new Promise<void>((resolve, reject) => {
           if (sink.destroyed || !sink.writable) {
@@ -68,7 +71,10 @@ export function openPrivateTransport(): {
           receiver.once("end", fail);
           receiver.on("data", receive);
           sink.write(bytes, (error) => {
-            if (error) { fail(); return; }
+            if (error) {
+              fail();
+              return;
+            }
             flushed = true;
             finish();
           });
@@ -79,6 +85,9 @@ export function openPrivateTransport(): {
         bytes.fill(0);
       }
     },
-    close: () => { sink.destroy(); receiver.destroy(); },
+    close: () => {
+      sink.destroy();
+      receiver.destroy();
+    },
   };
 }

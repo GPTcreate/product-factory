@@ -86,7 +86,9 @@ export function diagnoseConnection({
       "failed",
       health.level === "critical" ? "critical" : "warning",
       "Collection failed",
-      latest === "failed" && health.level === "healthy" ? "The latest run failed after the status snapshot." : health.reason,
+      latest === "failed" && health.level === "healthy"
+        ? "The latest run failed after the status snapshot."
+        : health.reason,
       "Inspect the original error and verify access or configuration before retrying.",
     );
   if (latest === "partial")

@@ -8,7 +8,11 @@ globalThis.fetch = async () => {
       if (kind === "json") throw new Error("synthetic-sensitive-sentinel");
       return kind === "provider"
         ? { error: "synthetic-sensitive-sentinel" }
-        : { refresh_token: "synthetic-sensitive-sentinel".repeat(kind === "large" ? 8192 : 1) };
+        : {
+            refresh_token: "synthetic-sensitive-sentinel".repeat(
+              kind === "large" ? 8192 : 1,
+            ),
+          };
     },
   };
 };

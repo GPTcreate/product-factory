@@ -39,9 +39,7 @@ describe("product registration guidance", () => {
       screen.getByRole("navigation", { name: "Registration steps" }),
     ).toBeInTheDocument();
     await act(async () => {
-      fireEvent.click(
-        screen.getByRole("button", { name: "Add product" }),
-      );
+      fireEvent.click(screen.getByRole("button", { name: "Add product" }));
     });
     await vi.waitFor(() => expect(mutate).toHaveBeenCalled());
     expect(mutate.mock.calls[0][0]).toMatchObject({
@@ -97,9 +95,7 @@ describe("product registration guidance", () => {
     );
     render(<SiteFormDialog mode="create" preset={valid} onClose={close} />);
     await act(async () => {
-      fireEvent.click(
-        screen.getByRole("button", { name: "Add product" }),
-      );
+      fireEvent.click(screen.getByRole("button", { name: "Add product" }));
     });
     expect(
       await screen.findByText("Server rejected this product"),

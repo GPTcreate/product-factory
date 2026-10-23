@@ -7,6 +7,12 @@ import type {
   EventDaily,
   SearchAudience,
 } from "../../supabase/functions/_shared/product";
+import type {
+  LaunchCheck,
+  ProductTask,
+  ReviewGoal,
+  ReviewRecord,
+} from "../../supabase/functions/_shared/operations";
 type FactoryTable<T> = {
   Row: { [K in keyof T]: T[K] };
   Insert: Partial<T>;
@@ -36,6 +42,21 @@ export type TriggerType = "scheduled" | "manual" | "backfill";
 export interface Database {
   public: {
     Tables: {
+      operational_alerts: FactoryTable<{
+        id: string;
+        site_id: string;
+        source: SyncSource;
+        severity: "info" | "warning" | "critical";
+        message: string;
+        first_seen_at: string;
+        last_seen_at: string;
+        resolved_at: string | null;
+        acknowledged_at: string | null;
+      }>;
+      product_launch_checks: FactoryTable<LaunchCheck>;
+      product_tasks: FactoryTable<ProductTask>;
+      product_review_goals: FactoryTable<ReviewGoal>;
+      product_reviews: FactoryTable<ReviewRecord>;
       analytics_extended_daily: FactoryTable<AnalyticsExtended>;
       analytics_event_daily: FactoryTable<EventDaily>;
       search_audience_daily: FactoryTable<SearchAudience>;

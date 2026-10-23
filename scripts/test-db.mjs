@@ -11,6 +11,7 @@ create function auth.jwt() returns jsonb language sql stable as $$select coalesc
 create function auth.uid() returns uuid language sql stable as $$select (auth.jwt()->>'sub')::uuid$$;
 grant usage on schema auth to authenticated; grant execute on all functions in schema auth to authenticated;
 create schema vault; create table vault.decrypted_secrets(name text,decrypted_secret text);
+create function vault.create_secret(text,text) returns uuid language plpgsql as $$begin insert into vault.decrypted_secrets values($2,$1); return gen_random_uuid(); end$$;
 create schema cron; create table cron.job(jobname text primary key,schedule text,command text,active boolean default true);
 create function cron.schedule(text,text,text) returns bigint language plpgsql as $$begin insert into cron.job values($1,$2,$3,true) on conflict(jobname) do update set schedule=$2,command=$3;return 1;end$$;
 create function cron.unschedule(text) returns boolean language plpgsql as $$begin delete from cron.job where jobname=$1;return true;end$$;
@@ -80,11 +81,105 @@ await assert.rejects(() =>
     `update public.sites set adsense_mapping_key='other.kr' where id='${id}';`,
   ),
 );
+await sql(`insert into public.product_launch_checks(site_id,item_key,status,notes) values('${id}','core_flow','ready','Verified fixture');
+insert into public.product_tasks(site_id,title,notes) values('${id}','Improve fixture','Observed issue');
+insert into public.product_review_goals(site_id,metric,target,window_days,minimum_days) values('${id}','sessions',100,28,21);
+insert into public.product_reviews(site_id,period_start,period_end,metric,target,coverage_days,suggestion,decision,reviewed_by) values('${id}','2026-10-01','2026-10-07','sessions',100,0,'INSUFFICIENT','DEFER','${admin}');`);
+await assert.rejects(() =>
+  sql(
+    `insert into public.product_launch_checks(site_id,item_key,status) values('${id}','seo','ready');`,
+  ),
+);
+await assert.rejects(() =>
+  sql(
+    `insert into public.product_tasks(site_id,title,status) values('${id}','Unverified','done');`,
+  ),
+);
+await assert.rejects(() =>
+  sql(
+    `insert into public.product_tasks(site_id,title,week_start) values('${id}','Bad week','2026-10-20');`,
+  ),
+);
+const fixtureSecret = "fixture_automation_value_for_local_test_only";
+assert.equal(
+  (
+    await db.query(
+      `select public.prepare_factory_automation('${fixtureSecret}') ok`,
+    )
+  ).rows[0].ok,
+  true,
+);
+assert.equal(
+  (
+    await db.query(
+      `select public.prepare_factory_automation('${fixtureSecret}') ok`,
+    )
+  ).rows[0].ok,
+  true,
+);
+assert.equal(
+  (
+    await db.query(
+      `select public.prepare_factory_automation('different_fixture_automation_value_only') ok`,
+    )
+  ).rows[0].ok,
+  false,
+);
+await assert.rejects(() =>
+  db.query("select count(*) from vault.decrypted_secrets"),
+);
+await sql("reset role;");
+assert.equal(
+  (
+    await db.query(
+      "select count(*)::int n from vault.decrypted_secrets where name='automation_secret'",
+    )
+  ).rows[0].n,
+  1,
+);
+await sql("set role service_role;");
+await sql(
+  `update public.integration_status set enabled=true,last_status='failed',last_attempt_at=now(),last_error_code='config_missing' where site_id='${id}' and source='ga4'; reset role; select public.refresh_operational_alerts();`,
+);
+assert.equal(
+  (
+    await db.query(
+      `select count(*)::int n from public.operational_alerts where site_id='${id}' and source='ga4' and resolved_at is null`,
+    )
+  ).rows[0].n,
+  1,
+);
+await sql(`select public.refresh_operational_alerts();`);
+assert.equal(
+  (
+    await db.query(
+      `select count(*)::int n from public.operational_alerts where site_id='${id}' and source='ga4'`,
+    )
+  ).rows[0].n,
+  1,
+);
+await sql(
+  `update public.integration_status set last_status='success',last_success_at=now() where site_id='${id}' and source='ga4'; select public.refresh_operational_alerts();`,
+);
+assert.equal(
+  (
+    await db.query(
+      `select count(*)::int n from public.operational_alerts where site_id='${id}' and source='ga4' and resolved_at is null`,
+    )
+  ).rows[0].n,
+  0,
+);
+await sql("set role service_role;");
 const protectedTables = [
   "sites",
   "ideas",
   "factory_weeks",
   "adsense_daily_metrics",
+  "product_launch_checks",
+  "product_tasks",
+  "product_review_goals",
+  "product_reviews",
+  "operational_alerts",
 ];
 for (const [sub, aal, allowed] of [
   [admin, "aal1", false],
@@ -103,6 +198,14 @@ for (const [sub, aal, allowed] of [
     sql(
       "insert into public.ideas(title,problem,market,scores,opportunity_score) values('Forbidden','x','Korea','{}',0);",
     ),
+  );
+  await assert.rejects(() =>
+    sql(
+      `insert into public.product_tasks(site_id,title) values('${id}','Forbidden');`,
+    ),
+  );
+  await assert.rejects(() =>
+    db.query(`select public.prepare_factory_automation('${fixtureSecret}')`),
   );
 }
 await sql(`reset role;set role anon;`);
@@ -133,5 +236,5 @@ assert.equal(
 );
 await db.close();
 console.log(
-  "PASS: 13 migrations; Product/Ideas CRUD; weekly records; AdSense idempotency, attribution guard and cascades; admin + MFA RLS; no browser writes; cron registration.",
+  `PASS: ${files.length} migrations; Product/Ideas CRUD; operations persistence/constraints; automation credential preservation; AdSense idempotency; admin + MFA RLS; no browser writes; cron registration.`,
 );

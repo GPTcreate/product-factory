@@ -11,6 +11,7 @@ import type { SiteWithStatuses } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { ErrorState } from "@/components/ui/error-state";
 import { usePrivacyMode } from "@/lib/privacy";
+import { WeeklyOperationsReport } from "./WeeklyOperationsReport";
 export function FactoryPage() {
   const products = useSites(),
     weeks = useWeeks(),
@@ -74,6 +75,9 @@ export function FactoryPage() {
         />
       )}
       <h2 className="font-semibold">Product pipeline</h2>
+      {products.data && (
+        <WeeklyOperationsReport sites={products.data} week={week} />
+      )}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {PRODUCT_STATUSES.map((status) => (
           <section key={status} className="rounded-xl border bg-muted/40 p-3">

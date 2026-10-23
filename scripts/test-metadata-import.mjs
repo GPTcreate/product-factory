@@ -76,13 +76,11 @@ try {
     adsense: { enabled: true, verified_site_domain: "example.com" },
   };
   const upload = async (value) =>
-    page
-      .getByLabel("Metadata JSON file")
-      .setInputFiles({
-        name: "product.json",
-        mimeType: "application/json",
-        buffer: Buffer.from(JSON.stringify(value)),
-      });
+    page.getByLabel("Metadata JSON file").setInputFiles({
+      name: "product.json",
+      mimeType: "application/json",
+      buffer: Buffer.from(JSON.stringify(value)),
+    });
   await page.goto(`${origin}/tests/browser/index.html`);
   await page.getByRole("link", { name: "Products", exact: true }).click();
   await page

@@ -43,6 +43,10 @@ const date = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
 let sites = [],
   ideas = [],
   weeks = [];
+let launchChecks = [],
+  tasks = [],
+  goals = [],
+  reviews = [];
 const statuses = () =>
   sites.flatMap((s) =>
     ["gsc", "ga4", "bing", "adsense"].map((source) => ({
@@ -97,6 +101,45 @@ await page.route("https://fixture.supabase.test/**", async (route) => {
         site: sites.find((s) => s.id === b.id) ?? sites.at(-1),
       };
     } else if (url.pathname.endsWith("manage-factory")) {
+      if (b.action === "launch.save")
+        launchChecks = [
+          ...launchChecks.filter(
+            (c) =>
+              c.site_id !== b.values.site_id ||
+              c.item_key !== b.values.item_key,
+          ),
+          {
+            ...b.values,
+            verified_at: b.values.status === "ready" ? now : null,
+            updated_at: now,
+          },
+        ];
+      if (b.action === "task.save") {
+        const value = {
+          ...b.values,
+          id: b.values.id ?? crypto.randomUUID(),
+          updated_at: now,
+        };
+        tasks = [...tasks.filter((t) => t.id !== value.id), value];
+      }
+      if (b.action === "goal.save")
+        goals = [
+          ...goals.filter((g) => g.site_id !== b.values.site_id),
+          { ...b.values, updated_at: now },
+        ];
+      if (b.action === "review.save")
+        reviews.push({
+          ...b.values,
+          id: crypto.randomUUID(),
+          period_start: date,
+          period_end: date,
+          metric: "sessions",
+          target: goals[0].target,
+          observed: null,
+          coverage_days: 0,
+          suggestion: "INSUFFICIENT",
+          created_at: now,
+        });
       if (b.action === "idea.create")
         ideas.push({
           ...b.values,
@@ -125,6 +168,10 @@ await page.route("https://fixture.supabase.test/**", async (route) => {
         sites,
         ideas,
         factory_weeks: weeks,
+        product_launch_checks: launchChecks,
+        product_tasks: tasks,
+        product_review_goals: goals,
+        product_reviews: reviews,
         integration_status: statuses(),
         adsense_daily_metrics: sites
           .filter((s) => s.adsense_enabled)
@@ -239,9 +286,81 @@ await page.getByRole("button", { name: "Delete", exact: true }).click();
 await page.getByRole("button", { name: "Confirm delete" }).click();
 await page.getByText("No ideas in this market yet.").waitFor();
 assert.equal(ideas.length, 0);
+await page.setViewportSize({ width: 1440, height: 1000 });
+await page.getByRole("link", { name: "Products", exact: true }).click();
+await page.getByRole("link").filter({ hasText: "IPOScore" }).first().click();
+await page.getByRole("button", { name: "Launch", exact: true }).click();
+await page
+  .getByLabel("core_flow verification notes")
+  .fill("Verified synthetic fixture");
+await page.getByLabel("core_flow status").selectOption("ready");
+await page.getByRole("button", { name: "Save 핵심 기능", exact: true }).click();
+await page.getByText(/확인 시각/).waitFor();
+assert.equal(launchChecks[0].status, "ready");
+await page.getByRole("button", { name: "Work", exact: true }).click();
+await page.getByLabel("New task title").fill("Fix fixture measurement");
+await page
+  .getByRole("button", { name: "Add improvement task", exact: true })
+  .click();
+await page.getByRole("heading", { name: "작업 편집", exact: true }).waitFor();
+assert.equal(tasks.length, 1);
+await page.getByRole("button", { name: "Review", exact: true }).click();
+await page.getByLabel("target", { exact: true }).fill("250");
+await page
+  .getByRole("button", { name: "Save review goal", exact: true })
+  .click();
+await page
+  .getByRole("heading", { name: "평가 미리보기", exact: true })
+  .waitFor();
+await page.getByText("INSUFFICIENT", { exact: true }).waitFor();
+await page
+  .getByLabel("Review rationale")
+  .fill("Defer until real data is available");
+await page
+  .getByRole("button", { name: "Save evaluation record", exact: true })
+  .click();
+await page.getByText(/운영자 판단:/).waitFor();
+assert.equal(reviews[0].observed, null);
+assert.equal(sites[0].status, "SCALE");
+await page.screenshot({
+  path: "test-results/review-desktop.png",
+  fullPage: true,
+});
+await page.setViewportSize({ width: 390, height: 844 });
+await page.getByRole("button", { name: "Work", exact: true }).click();
+assert.equal(
+  await page.getByLabel(`Task title ${tasks[0].id}`).inputValue(),
+  "Fix fixture measurement",
+);
+await page.screenshot({ path: "test-results/work-mobile.png", fullPage: true });
+assert.equal(
+  await page.evaluate(
+    () => document.documentElement.scrollWidth <= window.innerWidth,
+  ),
+  true,
+  "Product operations should fit the mobile viewport",
+);
+await page.setViewportSize({ width: 1440, height: 1000 });
+await page.getByRole("link", { name: "Factory", exact: true }).click();
+await page
+  .getByRole("button", { name: "Open weekly report", exact: true })
+  .click();
+await page
+  .getByRole("button", { name: "Download weekly report", exact: true })
+  .waitFor();
+const downloadPromise = page.waitForEvent("download");
+await page
+  .getByRole("button", { name: "Download weekly report", exact: true })
+  .click();
+const download = await downloadPromise;
+assert.match(download.suggestedFilename(), /weekly\.txt$/);
+await page.screenshot({
+  path: "test-results/weekly-report-desktop.png",
+  fullPage: true,
+});
 assert.deepEqual(failures, []);
 console.log(
-  "PASS: P001 creation, AdSense settings & revenue, Ideas create/edit/delete, week save, pipeline status, desktop/mobile renders. Fixture backend; no live provider calls.",
+  "PASS: Product/Ideas/Week regression; persisted launch checklist, improvement task, goal and deferred evaluation; weekly report; desktop/mobile renders. Fixture backend; no live provider calls.",
 );
 await browser.close();
 

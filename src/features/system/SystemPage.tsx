@@ -12,6 +12,8 @@ import { Alert } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/error-state";
 import { usePrivacyMode } from "@/lib/privacy";
+import { RuntimeConfiguration } from "./RuntimeConfiguration";
+import { OperationalAlerts } from "./OperationalAlerts";
 
 const LIMIT_BYTES = env.VITE_DB_SIZE_LIMIT_MB * 1024 * 1024;
 
@@ -35,6 +37,8 @@ export function SystemPage() {
         </p>
       </div>
       <DatabaseUsageCard />
+      <RuntimeConfiguration />
+      <OperationalAlerts />
       <RetentionCard />
     </div>
   );

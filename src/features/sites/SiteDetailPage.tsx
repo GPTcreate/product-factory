@@ -1,6 +1,7 @@
 import { AnalyticsDetail } from "@/features/factory/AnalyticsDetail";
 import { RevenuePanel } from "@/features/factory/RevenuePanel";
 import { ConnectionDiagnostics } from "./ConnectionDiagnostics";
+import { ProductOperations } from "@/features/factory/ProductOperations";
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ExternalLink, Pencil } from "lucide-react";
@@ -124,7 +125,7 @@ export function SiteDetailPage() {
             <ExternalLink className="h-3 w-3" />
           </a>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <SiteReportExportButton site={site} />
           <Button
             variant="secondary"
@@ -198,19 +199,30 @@ export function SiteDetailPage() {
         aria-label="Product detail"
         className="flex gap-2 overflow-x-auto border-b pb-3"
       >
-        {["Overview", "Traffic", "Search", "Revenue", "Events", "Health"].map(
-          (v) => (
-            <Button
-              key={v}
-              size="sm"
-              variant={v === tab ? "primary" : "ghost"}
-              onClick={() => setTab(v)}
-            >
-              {v}
-            </Button>
-          ),
-        )}
+        {[
+          "Overview",
+          "Traffic",
+          "Search",
+          "Revenue",
+          "Events",
+          "Health",
+          "Launch",
+          "Work",
+          "Review",
+        ].map((v) => (
+          <Button
+            key={v}
+            size="sm"
+            variant={v === tab ? "primary" : "ghost"}
+            onClick={() => setTab(v)}
+          >
+            {v}
+          </Button>
+        ))}
       </nav>
+      {(tab === "Launch" || tab === "Work" || tab === "Review") && (
+        <ProductOperations site={site} section={tab} />
+      )}
       {(tab === "Overview" || tab === "Revenue") && (
         <RevenuePanel days={days} products={[site]} productId={site.id} />
       )}
@@ -364,9 +376,13 @@ function MetricsSection({
               <StatCard
                 key={key}
                 label={label}
-                value={formatNumber(
-                  privacy.maskNumber(cur, `ga-card:${days}:${key}`),
-                )}
+                value={
+                  ga.current.length
+                    ? formatNumber(
+                        privacy.maskNumber(cur, `ga-card:${days}:${key}`),
+                      )
+                    : "No Data"
+                }
                 hint={<MetricDelta change={percentageChange(cur, prev)} />}
               />
             );
@@ -403,18 +419,29 @@ function MetricsSection({
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <StatCard
             label="Google clicks"
-            value={formatNumber(
-              privacy.maskNumber(gClicks, `search:${days}:google-clicks`),
-            )}
+            value={
+              g.current.length
+                ? formatNumber(
+                    privacy.maskNumber(gClicks, `search:${days}:google-clicks`),
+                  )
+                : "No Data"
+            }
             hint={
               <MetricDelta change={percentageChange(gClicks, gClicksPrev)} />
             }
           />
           <StatCard
             label="Google impressions"
-            value={formatNumber(
-              privacy.maskNumber(gImpr, `search:${days}:google-impressions`),
-            )}
+            value={
+              g.current.length
+                ? formatNumber(
+                    privacy.maskNumber(
+                      gImpr,
+                      `search:${days}:google-impressions`,
+                    ),
+                  )
+                : "No Data"
+            }
             hint={<MetricDelta change={percentageChange(gImpr, gImprPrev)} />}
           />
           <StatCard
@@ -451,18 +478,29 @@ function MetricsSection({
           />
           <StatCard
             label="Bing clicks"
-            value={formatNumber(
-              privacy.maskNumber(bClicks, `search:${days}:bing-clicks`),
-            )}
+            value={
+              b.current.length
+                ? formatNumber(
+                    privacy.maskNumber(bClicks, `search:${days}:bing-clicks`),
+                  )
+                : "No Data"
+            }
             hint={
               <MetricDelta change={percentageChange(bClicks, bClicksPrev)} />
             }
           />
           <StatCard
             label="Bing impressions"
-            value={formatNumber(
-              privacy.maskNumber(bImpr, `search:${days}:bing-impressions`),
-            )}
+            value={
+              b.current.length
+                ? formatNumber(
+                    privacy.maskNumber(
+                      bImpr,
+                      `search:${days}:bing-impressions`,
+                    ),
+                  )
+                : "No Data"
+            }
             hint={<MetricDelta change={percentageChange(bImpr, bImprPrev)} />}
           />
         </div>
