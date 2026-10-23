@@ -16,7 +16,11 @@ Windows 상속 pipe는 `fstat().isFIFO()`/`isSocket()`이 모두 false일 수 �
 
 `npm run setup:auth`는 Windows 전용 임시 로컬 설정 화면을 `http://127.0.0.1:5180`에 연다. `FACTORY_SUPABASE_CLI`에는 공식 Supabase CLI 실행 파일의 절대 경로를 지정한다. 이번 확인 버전은 2.121.0이다. PTY 런타임은 별도 `.agent/tools/auth-runtime-small`에 `@lydell/node-pty@1.1.0`을 설치해 사용하며 제품 dependency나 공용 core는 바꾸지 않는다. 공식 CLI 로그인은 interactive terminal이 필요하므로 private PTY를 사용하고 그 출력은 사용자 채팅이나 파일로 내보내지 않는다.
 
+다른 Windows PC에서 이 운영자 도구를 준비할 때만 저장소 루트에서 `npm install --prefix .agent/tools/auth-runtime-small --no-save --package-lock=false @lydell/node-pty@1.1.0`로 격리된 PTY를 설치한다. 공식 Supabase CLI의 위치를 PowerShell의 `$env:FACTORY_SUPABASE_CLI`에 지정하고 `npm run setup:auth`를 실행한다. 이 PC에서는 이미 설치·실행을 검증했으므로 재설치가 필요 없다. DPAPI 보관본은 현재 Windows 사용자에 묶여 있어 다른 계정·PC에서 그대로 복호화할 수 없다. 비밀값의 이동은 별도 보호 절차로 처리하며 암호화 파일을 저장소에 commit하지 않는다.
+
 이 receiver는 기존 Supabase `nemkjxdxswwtrlufcykp`와 Google Cloud `product-factory-510706`만 다룬다. 새 프로젝트·요금제·DB 초기화·일괄 배포는 수행하지 않는다. UI에는 이름별 완료 여부와 고정 안내만 표시한다. 모든 쓰기 요청에 정확한 Host·Origin과 무작위 CSRF 값을 요구하고 외부 origin을 거부한다. 서버는 loopback에만 바인딩하고 30분 후 종료한다.
+
+CLI 링크는 PTY 출력의 완전한 한 줄을 받은 뒤 `session_id`, `token_name`, `public_key`가 모두 있는 공식 URL만 사용한다. 이름의 공백에서 링크를 자르던 오류를 수정하고 회귀 검사를 추가했다. 만료된 요청은 로컬 화면에서 로그인 재시작 후 새 공식 링크로 열며, 이전 링크를 재사용하지 않는다. 이미 로그인한 공식 브라우저의 CLI 코드는 승인된 로컬 receiver로 메모리에서 직접 전달할 수 있고 채팅·스크린샷·파일에 기록하지 않는다. 이 전달은 계정 비밀번호·MFA의 대리 입력을 포함하지 않는다.
 
 1. 로컬 화면의 `Supabase 공식 CLI 로그인 열기`로 공식 Supabase 페이지를 연다. 본인이 계정 로그인과 CLI 확인을 완료하고, 표시된 CLI 확인 코드를 로컬 password 입력란에만 전달한다. 계정 비밀번호·MFA 코드·PAT를 이 입력란이나 채팅에 넣지 않는다. 공식 CLI의 인증 저장은 CLI 자체 정책을 따른다.
 2. 로그인 성공 후 기존 Secret 이름 목록을 확인한다. `AUTOMATION_SECRET`이 있으면 보존하고, 없을 때만 CSPRNG 32바이트 값을 만들어 기존 Edge Secrets에 저장한다. Secret은 무작위 Windows named pipe의 env 데이터로 CLI에 전달하며 명령행 인수·일반 파일·터미널 출력에 넣지 않는다.
