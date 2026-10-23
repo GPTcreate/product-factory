@@ -54,4 +54,3 @@ jobs:
           VITE_SUPABASE_URL: https://fixture.supabase.test
           VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_fixture
           VITE_APP_URL: http://localhost:5173
-
