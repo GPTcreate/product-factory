@@ -1,5 +1,7 @@
 # OAuth helper private delivery (T01)
 
+개인용 Google 설정과 운영 전환은 [개인용 OAuth 실행 절차](GOOGLE_OAUTH_PERSONAL_RUNBOOK.md)를 따른다. 이 문서는 구현자용 보호 전달 규약을 다룬다.
+
 실행은 운영자가 승인한 인증 작업에서 수행한다. T01 개발 검증에서는 실제 OAuth를 실행하지 않았다. 2026-10-23 운영자는 기존 인증값이 없음을 확인하고 신규 인증 설정을 승인했다. 아래의 보호 전달 계약은 유지하며, 신규 운영자 receiver는 마지막 절을 따른다.
 
 helper는 token을 stdout/stderr, 브라우저, 파일에 출력하지 않는다. provider 오류와 예외는 고정 메시지로만 기록한다. 성공 token은 부모 프로세스가 상속한 전용 fd 3 pipe로만 전달한다. pipe가 없으면 서버나 OAuth 요청을 시작하기 전에 실패한다. 파일과 터미널 fd는 거부한다.
