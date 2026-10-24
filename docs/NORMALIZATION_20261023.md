@@ -8,7 +8,11 @@
 
 기능 소스 `650ab01`의 CI [40099082915](https://github.com/GPTcreate/product-factory/actions/runs/40099082915)는 성공했고 [PR 1](https://github.com/GPTcreate/product-factory/pull/1)을 `accec96`으로 병합해 기존 Pages에 배포했다. CLI 실응답의 SHA-256이 `value` 필드에 있는 차이를 보완한 `3cd53ac`도 CI [40099545709](https://github.com/GPTcreate/product-factory/actions/runs/40099545709) 성공 후 [PR 2](https://github.com/GPTcreate/product-factory/pull/2)를 `335a7c6`으로 병합했다. 단위 테스트 225개, 보안 설정 테스트 10개, migration/RLS 15개, 합성 OAuth transport 10개 검증을 통과했다.
 
-Google 브랜딩에 실제 안내 URL과 기존 Pages 승인 도메인을 저장해 `앱 게시` 버튼이 활성화됐다. 기존 Google 클라이언트의 암호화 보관본과 실제 Edge 설정 digest가 모두 일치한다. 현재 게시 상태는 여전히 테스트이며 최종 운영 전환과 본인 재동의의 실행 직전 확인을 기다린다. 새 토큰 교체는 아직 수행하지 않았고 기존 Google·예약 인증을 보존했다. 개인용 심사 예외와 동의 화면의 Google 경고는 별도이며, 새 운영 인증의 실제 교체와 수집 확인 전에는 7일 제한 해소를 완료로 기록하지 않는다.
+사용자가 운영 전환·본인 재연결의 최종 실행을 승인한 뒤 기존 Google 프로젝트를 **External / 프로덕션 단계**로 전환했다. 같은 클라이언트와 본인 계정의 세 읽기 권한으로 재동의했고, 새 토큰의 정확한 scope·기존 GA4 및 GSC 접근을 검증한 뒤 **GOOGLE_REFRESH_TOKEN 하나만 2026-10-24 14:29:48.819 UTC(23:29 KST)에 보호 교체**했다. 저장 digest 확인과 callback 성공을 확인했다. Client ID·Secret의 마지막 변경은 10/23 09:37 UTC, AUTOMATION_SECRET은 10/23 09:01 UTC로 보존됐다. 비밀값은 출력하지 않았고 임시 인증 helper를 종료했다.
+
+교체 후 기존 예약 endpoint를 공급자별 한 번씩 호출한 9건과 관리자 화면에서 세 제품의 `Run all enabled`로 실행한 수동 9건, **총 18건이 모두 success**다. IPOScore는 각 경로에서 GA4 51행·GSC 120행·Bing 13행을 저장했고 신규 두 제품은 오류 없는 0행 응답이다. 대표 증거는 GA4 예약 `8af82b2c-2afd-4c3b-acbc-6b6ab1b31177`, 수동 `0453798d-a187-4b83-b89b-b540f103cdad`다. 예약 endpoint의 수동 검증 호출과 실제 정규 cron 실행을 구분한다. 기존 일정은 바꾸지 않았고 다음 정규 실행은 10/25 13:00·13:10·13:20 KST다. 교체 후 첫 정규 실행과 7일 이상 경과한 지속 운영은 추가 관측 대상이며 이번 완료로 가정하지 않는다.
+
+운영 상태에서 발급한 인증으로 테스트 모드의 7일 만료 조건을 해소했다. Google의 개인용 미검증 앱 경고와 100명 사용자 한도는 남으며 공식 심사 완료로 기록하지 않는다. 권한 철회 등 다른 토큰 무효화 조건은 여전히 적용된다. 관리자·MFA와 기존 데이터·연결은 유지했고 열린 운영 알림은 0건이다.
 
 AdSense는 기존 사이트 승인과 연결 매핑이 남아 있어 수집을 활성화하지 않는다. 새 프로젝트, 운영 DB 초기화, 공용 core 변경, 다른 작업 중단은 수행하지 않았다.
 
