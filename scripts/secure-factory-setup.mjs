@@ -13,6 +13,7 @@ import {
   googleSecretPayload,
   verifyGoogleRefreshToken,
   secretDigest,
+  readSecretInventory,
 } from "./secure-factory-setup-core.mjs";
 
 // Explicit operator workflow. Uses only the existing project and official CLI.
@@ -92,14 +93,7 @@ function cli(args) {
 async function inventory() {
   const result = await cli(["secrets", "list", "--project-ref", PROJECT_REF]);
   if (!result) throw new Error("Secret inventory unavailable");
-  const found = new Map();
-  const scan = (value) => {
-    if (!value || typeof value !== "object") return;
-    if (typeof value.name === "string") found.set(value.name, value.digest);
-    for (const item of Object.values(value))
-      if (typeof item === "object") scan(item);
-  };
-  scan(result);
+  const found = readSecretInventory(result);
   if (!found.has("BING_WEBMASTER_API_KEY"))
     throw new Error("Project inventory could not be confirmed");
   return found;
