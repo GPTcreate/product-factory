@@ -28,6 +28,29 @@ export function secretDigest(value) {
   return createHash("sha256").update(value).digest("hex");
 }
 
+/** The CLI JSON calls the SHA-256 digest `value`; some inventory APIs call it
+ * `digest`. Accept only hashes, and keep names even if a digest is unavailable
+ * so an unknown existing credential can never be mistaken for an absent one. */
+export function readSecretInventory(result) {
+  const found = new Map();
+  const scan = (item) => {
+    if (!item || typeof item !== "object") return;
+    if (typeof item.name === "string") {
+      const digest = item.digest ?? item.value;
+      found.set(
+        item.name,
+        typeof digest === "string" && /^[a-f0-9]{64}$/i.test(digest)
+          ? digest.toLowerCase()
+          : undefined,
+      );
+    }
+    for (const value of Object.values(item))
+      if (value && typeof value === "object") scan(value);
+  };
+  scan(result);
+  return found;
+}
+
 /** Rotation is explicit and can only replace the refresh token for the same client.
  * Inventory contains CLI digests, never existing secret values. */
 export function googleSecretPayload(client, token, inventory, rotate = false) {

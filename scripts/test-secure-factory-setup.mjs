@@ -12,6 +12,7 @@ import {
   googleSecretPayload,
   secretDigest,
   verifyGoogleRefreshToken,
+  readSecretInventory,
 } from "./secure-factory-setup-core.mjs";
 
 test("CLI login links preserve spaced names and require a complete request", () => {
@@ -42,10 +43,17 @@ const client = {
 };
 test("rotation preserves client credentials and rejects partial or mismatched inventories", () => {
   const imported = readClient(JSON.stringify(client));
-  const inventory = new Map([
-    ["GOOGLE_CLIENT_ID", secretDigest(imported.id)],
-    ["GOOGLE_CLIENT_SECRET", secretDigest(imported.secret)],
-    ["GOOGLE_REFRESH_TOKEN", secretDigest("synthetic_old_refresh_token")],
+  const inventory = readSecretInventory([
+    {
+      name: "GOOGLE_CLIENT_ID",
+      value: secretDigest(imported.id),
+      updated_at: "2026-01-01T00:00:00Z",
+    },
+    { name: "GOOGLE_CLIENT_SECRET", value: secretDigest(imported.secret) },
+    {
+      name: "GOOGLE_REFRESH_TOKEN",
+      value: secretDigest("synthetic_old_refresh_token"),
+    },
   ]);
   assert.throws(() =>
     googleSecretPayload(imported, "synthetic_new_token", inventory),
@@ -65,6 +73,27 @@ test("rotation preserves client credentials and rejects partial or mismatched in
   inventory.delete("GOOGLE_REFRESH_TOKEN");
   assert.throws(() =>
     googleSecretPayload(imported, "synthetic_new_token", inventory, true),
+  );
+});
+test("inventory supports digest responses and preserves unknown existing credentials", () => {
+  const digest = secretDigest("synthetic_value");
+  assert.equal(
+    readSecretInventory({
+      secrets: [{ name: "GOOGLE_CLIENT_ID", digest }],
+    }).get("GOOGLE_CLIENT_ID"),
+    digest,
+  );
+  const inventory = readSecretInventory([
+    { name: "GOOGLE_CLIENT_ID", value: "not_a_digest" },
+  ]);
+  assert.equal(inventory.has("GOOGLE_CLIENT_ID"), true);
+  assert.equal(inventory.get("GOOGLE_CLIENT_ID"), undefined);
+  assert.throws(() =>
+    googleSecretPayload(
+      readClient(JSON.stringify(client)),
+      "synthetic_token",
+      inventory,
+    ),
   );
 });
 test("a replacement token must refresh with exactly the approved scopes and reach existing properties", async () => {
