@@ -1,5 +1,15 @@
 # OAuth helper private delivery (T01)
 
+## 동일 클라이언트 토큰 갱신 (2026-10-24)
+
+Google 앱을 운영 상태로 전환한 뒤에만 `npm run setup:auth -- --rotate-google-after-production`으로 명시적인 갱신 모드를 실행한다. 운영자가 확인한 기존 GA4 Property ID와 Search Console 사이트 식별자를 각각 `FACTORY_VERIFY_GA4_PROPERTY`, `FACTORY_VERIFY_GSC_SITE` 환경변수에 지정한다. 실제 사이트 식별자나 인증값을 소스에 추가하지 않는다.
+
+보호된 기존 클라이언트를 `/client`로 메모리에 가져온 뒤, 동일 origin·CSRF가 있는 `/google-rotate` 요청에 `confirmProduction: true`를 전달한다. 이 endpoint는 명시적 실행 옵션이 없으면 거부된다. CLI Secret digest와 가져온 Client ID·Secret의 SHA-256이 모두 일치하고 기존 세 설정이 모두 있어야 시작한다. 기존 항목을 삭제해 초기 설정 보호를 우회하지 않는다.
+
+새 토큰으로 Google access token을 받아 승인한 세 readonly scope만 있는지, 지정한 기존 GA4와 Search Console 사이트에 실제 접근 가능한지 먼저 확인한다. 성공한 경우에만 `GOOGLE_REFRESH_TOKEN` 하나를 보호 pipe로 교체하고 저장 digest를 확인한다. Client ID·Secret·예약 인증은 쓰지 않는다. 검증 실패 전에는 기존 설정을 변경하지 않는다. provider 응답·인증값은 로그에 남기지 않는다. 실제 검증과 CLI 저장 확인을 위해 현재 Google helper의 ACK 제한은 120초이며 전체 OAuth 세션은 5분이다. 아래 이전 구현 설명의 10초 제한은 초기 transport 기본값에 해당한다.
+
+`/about`, `/privacy`, `/terms`는 로그인 없는 정적 안내 페이지다. 공개 페이지에는 SDK·통계 조회·계정 입력이 없으며 관리자·MFA·RLS 규칙은 유지한다. 운영 게시 완료 여부는 Google 콘솔과 최신 검증 기록으로 확인하며 이 구현 설명만으로 완료로 간주하지 않는다.
+
 개인용 Google 설정과 운영 전환은 [개인용 OAuth 실행 절차](GOOGLE_OAUTH_PERSONAL_RUNBOOK.md)를 따른다. 이 문서는 구현자용 보호 전달 규약을 다룬다.
 
 실행은 운영자가 승인한 인증 작업에서 수행한다. T01 개발 검증에서는 실제 OAuth를 실행하지 않았다. 2026-10-23 운영자는 기존 인증값이 없음을 확인하고 신규 인증 설정을 승인했다. 아래의 보호 전달 계약은 유지하며, 신규 운영자 receiver는 마지막 절을 따른다.

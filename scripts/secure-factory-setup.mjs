@@ -10,6 +10,9 @@ import {
   requestAllowed,
   writeSecrets,
   PROJECT_REF,
+  googleSecretPayload,
+  verifyGoogleRefreshToken,
+  secretDigest,
 } from "./secure-factory-setup-core.mjs";
 
 // Explicit operator workflow. Uses only the existing project and official CLI.
@@ -23,6 +26,13 @@ const pty = createRequire(import.meta.url)(
   resolve(".agent/tools/auth-runtime-small/node_modules/@lydell/node-pty"),
 );
 const port = 5180;
+const rotationEnabled = process.argv.includes(
+  "--rotate-google-after-production",
+);
+const verificationTargets = {
+  ga4Property: process.env.FACTORY_VERIFY_GA4_PROPERTY,
+  gscSite: process.env.FACTORY_VERIFY_GSC_SITE,
+};
 const csrf = randomBytes(32).toString("hex");
 let loginChild,
   googleChild,
@@ -79,13 +89,13 @@ function cli(args) {
     });
   });
 }
-async function names() {
+async function inventory() {
   const result = await cli(["secrets", "list", "--project-ref", PROJECT_REF]);
   if (!result) throw new Error("Secret inventory unavailable");
-  const found = new Set();
+  const found = new Map();
   const scan = (value) => {
     if (!value || typeof value !== "object") return;
-    if (typeof value.name === "string") found.add(value.name);
+    if (typeof value.name === "string") found.set(value.name, value.digest);
     for (const item of Object.values(value))
       if (typeof item === "object") scan(item);
   };
@@ -93,6 +103,9 @@ async function names() {
   if (!found.has("BING_WEBMASTER_API_KEY"))
     throw new Error("Project inventory could not be confirmed");
   return found;
+}
+async function names() {
+  return new Set((await inventory()).keys());
 }
 async function prepareAutomation() {
   busy = true;
@@ -183,19 +196,19 @@ function startLogin(restart = false) {
     await prepareAutomation();
   });
 }
-async function startGoogle() {
+async function startGoogle(rotate = false) {
   if (!state.loggedIn || !client || googleChild || busy) return false;
-  const existing = await names();
-  if (
-    ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REFRESH_TOKEN"].some(
-      (k) => existing.has(k),
-    )
-  ) {
+  if (rotate && !rotationEnabled) return false;
+  const existing = await inventory();
+  try {
+    googleSecretPayload(client, "candidate_not_stored", existing, rotate);
+  } catch {
     state.message =
-      "Google 설정이 이미 존재합니다. 자동 덮어쓰기를 중단했습니다.";
+      "기존 Google 설정 또는 클라이언트가 일치하지 않아 변경하지 않았습니다. 명시적인 동일 클라이언트 토큰 갱신만 허용합니다.";
     return false;
   }
   googleFrame = "";
+  state.googleStored = false;
   state.googleReady = false;
   googleChild = spawn(
     process.execPath,
@@ -211,6 +224,7 @@ async function startGoogle() {
       stdio: ["pipe", "pipe", "pipe", "pipe"],
     },
   );
+  googleChild.stdin.on("error", () => {});
   googleChild.stdout.on("data", (b) => {
     if (b.toString().includes("Open http://127.0.0.1:5179/authorize")) {
       state.googleReady = true;
@@ -228,27 +242,45 @@ async function startGoogle() {
     }
     if (!googleFrame.endsWith("\n") || busy) return;
     busy = true;
+    let payload, values;
     try {
-      const payload = JSON.parse(googleFrame);
+      payload = JSON.parse(googleFrame);
       googleFrame = "";
-      const ok = await writeSecrets(binary, {
-        GOOGLE_CLIENT_ID: client.id,
-        GOOGLE_CLIENT_SECRET: client.secret,
-        GOOGLE_REFRESH_TOKEN: payload.refresh_token,
-      });
+      values = googleSecretPayload(
+        client,
+        payload.refresh_token,
+        await inventory(),
+        rotate,
+      );
+      if (
+        !(await verifyGoogleRefreshToken(
+          client,
+          payload.refresh_token,
+          verificationTargets,
+        ))
+      )
+        throw new Error("Candidate access could not be confirmed");
+      const ok = await writeSecrets(binary, values);
+      const expected = secretDigest(payload.refresh_token);
       payload.refresh_token = "";
+      for (const key of Object.keys(values)) values[key] = "";
       if (!ok) throw new Error("Delivery failed");
+      if ((await inventory()).get("GOOGLE_REFRESH_TOKEN") !== expected)
+        throw new Error("Stored token could not be confirmed");
       state.googleStored = true;
       googleChild?.stdin.write("OAUTH_RECEIVED\n");
       client = undefined;
       state.clientLoaded = false;
-      state.message =
-        "Google 인증 세 항목을 기존 Edge Secrets에 저장했습니다. agent가 실제 수집을 검증할 수 있습니다.";
+      state.message = rotate
+        ? "동일 클라이언트의 새 토큰 권한과 실제 GA4·Search Console 접근을 검증하고 갱신 토큰만 교체했습니다."
+        : "Google 인증 세 항목을 기존 Edge Secrets에 저장했습니다. agent가 실제 수집을 검증할 수 있습니다.";
     } catch {
       state.message =
         "Google 보호 저장 실패. 인증값이나 provider 원문은 표시하지 않습니다.";
       googleChild?.kill();
     } finally {
+      if (payload) payload.refresh_token = "";
+      if (values) for (const key of Object.keys(values)) values[key] = "";
       busy = false;
     }
   });
@@ -326,6 +358,10 @@ const server = createServer(async (req, res) => {
     }
     if (req.url === "/google")
       return reply((await startGoogle()) ? 200 : 409, {
+        ok: state.googleReady,
+      });
+    if (req.url === "/google-rotate" && input.confirmProduction === true)
+      return reply((await startGoogle(true)) ? 200 : 409, {
         ok: state.googleReady,
       });
     return reply(400, { ok: false });

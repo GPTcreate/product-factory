@@ -2,7 +2,7 @@ import { Socket } from "node:net";
 
 /** Socket construction validates the native handle, including Windows pipes.
  * Regular files and terminals cannot be opened as a Socket. */
-export function openPrivateTransport(): {
+export function openPrivateTransport(ackTimeoutMs = 10_000): {
   deliver: (token: string) => Promise<void>;
   close: () => void;
 } {
@@ -63,7 +63,7 @@ export function openPrivateTransport(): {
           const deadline = setTimeout(() => {
             sink.destroy();
             fail();
-          }, 10_000);
+          }, ackTimeoutMs);
           sink.once("error", fail);
           sink.once("close", fail);
           receiver.once("error", fail);

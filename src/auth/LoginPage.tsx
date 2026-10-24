@@ -105,6 +105,20 @@ export function LoginPage() {
             Forgot your password?
           </Link>
         </div>
+        <nav
+          aria-label="Product Factory information"
+          className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground"
+        >
+          <a href="/about" className="underline">
+            소개
+          </a>
+          <a href="/privacy" className="underline">
+            개인정보처리방침
+          </a>
+          <a href="/terms" className="underline">
+            이용 안내
+          </a>
+        </nav>
       </form>
     </AuthShell>
   );

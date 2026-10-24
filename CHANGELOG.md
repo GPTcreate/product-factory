@@ -6,6 +6,11 @@ This project doesn't yet cut formal GitHub Releases or git tags - version number
 
 ## [Unreleased]
 
+### Added
+
+- Public introduction, privacy and usage pages for the personal Google data collector, linked from sign-in. Dashboard authorization remains unchanged.
+- Explicit same-client Google refresh-token rotation with credential digest checks, readonly scope validation and live property access checks before replacing only the refresh token.
+
 ## [0.6.0] - 2026-08-30
 
 ### Added

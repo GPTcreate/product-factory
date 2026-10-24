@@ -9,6 +9,9 @@ import {
   GOOGLE_PROJECT,
   safeAuthPageState,
   readLoginURL,
+  googleSecretPayload,
+  secretDigest,
+  verifyGoogleRefreshToken,
 } from "./secure-factory-setup-core.mjs";
 
 test("CLI login links preserve spaced names and require a complete request", () => {
@@ -37,6 +40,117 @@ const client = {
     redirect_uris: [REDIRECT],
   },
 };
+test("rotation preserves client credentials and rejects partial or mismatched inventories", () => {
+  const imported = readClient(JSON.stringify(client));
+  const inventory = new Map([
+    ["GOOGLE_CLIENT_ID", secretDigest(imported.id)],
+    ["GOOGLE_CLIENT_SECRET", secretDigest(imported.secret)],
+    ["GOOGLE_REFRESH_TOKEN", secretDigest("synthetic_old_refresh_token")],
+  ]);
+  assert.throws(() =>
+    googleSecretPayload(imported, "synthetic_new_token", inventory),
+  );
+  assert.deepEqual(
+    googleSecretPayload(imported, "synthetic_new_token", inventory, true),
+    { GOOGLE_REFRESH_TOKEN: "synthetic_new_token" },
+  );
+  assert.throws(() =>
+    googleSecretPayload(
+      { ...imported, id: "different.apps.googleusercontent.com" },
+      "synthetic_new_token",
+      inventory,
+      true,
+    ),
+  );
+  inventory.delete("GOOGLE_REFRESH_TOKEN");
+  assert.throws(() =>
+    googleSecretPayload(imported, "synthetic_new_token", inventory, true),
+  );
+});
+test("a replacement token must refresh with exactly the approved scopes and reach existing properties", async () => {
+  const imported = readClient(JSON.stringify(client));
+  const targets = {
+    ga4Property: "123456789",
+    gscSite: "sc-domain:example.test",
+  };
+  const scope = [
+    "analytics.readonly",
+    "webmasters.readonly",
+    "adsense.readonly",
+  ]
+    .map((s) => `https://www.googleapis.com/auth/${s}`)
+    .join(" ");
+  const request =
+    (options = {}) =>
+    async (url) => {
+      if (url.endsWith("/token"))
+        return {
+          ok: options.tokenOk !== false,
+          json: async () => ({
+            access_token: "synthetic_access",
+            scope: options.scope ?? scope,
+          }),
+        };
+      if (url.endsWith("/metadata"))
+        return { ok: options.analyticsOk !== false };
+      return {
+        ok: true,
+        json: async () => ({
+          siteEntry: [
+            {
+              siteUrl: options.site ?? targets.gscSite,
+              permissionLevel: "siteOwner",
+            },
+          ],
+        }),
+      };
+    };
+  assert.equal(
+    await verifyGoogleRefreshToken(
+      imported,
+      "synthetic_refresh",
+      targets,
+      request(),
+    ),
+    true,
+  );
+  for (const options of [
+    { tokenOk: false },
+    { scope: scope + " https://www.googleapis.com/auth/drive" },
+    { scope: "https://www.googleapis.com/auth/analytics.readonly" },
+    { analyticsOk: false },
+    { site: "https://different.test/" },
+  ])
+    assert.equal(
+      await verifyGoogleRefreshToken(
+        imported,
+        "synthetic_refresh",
+        targets,
+        request(options),
+      ),
+      false,
+    );
+  assert.equal(
+    await verifyGoogleRefreshToken(
+      imported,
+      "synthetic_refresh",
+      targets,
+      async () => {
+        throw new Error("Provider details stay private");
+      },
+    ),
+    false,
+  );
+  assert.equal(
+    await verifyGoogleRefreshToken(
+      imported,
+      "synthetic_refresh",
+      undefined,
+      request(),
+    ),
+    false,
+  );
+});
 test("credential page summaries never expose secrets embedded in accessible button names", () => {
   const synthetic = "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credential";
   const summary = safeAuthPageState(

@@ -1,4 +1,4 @@
-import { randomBytes, timingSafeEqual } from "node:crypto";
+import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { createServer } from "node:net";
 import { spawn } from "node:child_process";
 import { mkdtemp, chmod, unlink, rmdir } from "node:fs/promises";
@@ -14,6 +14,102 @@ const keys = new Set([
   "GOOGLE_CLIENT_SECRET",
   "GOOGLE_REFRESH_TOKEN",
 ]);
+const googleKeys = [
+  "GOOGLE_CLIENT_ID",
+  "GOOGLE_CLIENT_SECRET",
+  "GOOGLE_REFRESH_TOKEN",
+];
+const googleScopes = [
+  "analytics.readonly",
+  "webmasters.readonly",
+  "adsense.readonly",
+].map((scope) => `https://www.googleapis.com/auth/${scope}`);
+export function secretDigest(value) {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+/** Rotation is explicit and can only replace the refresh token for the same client.
+ * Inventory contains CLI digests, never existing secret values. */
+export function googleSecretPayload(client, token, inventory, rotate = false) {
+  if (rotate) {
+    if (
+      !googleKeys.every((key) => inventory.has(key)) ||
+      inventory.get("GOOGLE_CLIENT_ID") !== secretDigest(client.id) ||
+      inventory.get("GOOGLE_CLIENT_SECRET") !== secretDigest(client.secret)
+    )
+      throw new Error("Existing Google client could not be confirmed");
+    return { GOOGLE_REFRESH_TOKEN: token };
+  }
+  if (googleKeys.some((key) => inventory.has(key)))
+    throw new Error("Existing Google settings require explicit rotation");
+  return {
+    GOOGLE_CLIENT_ID: client.id,
+    GOOGLE_CLIENT_SECRET: client.secret,
+    GOOGLE_REFRESH_TOKEN: token,
+  };
+}
+
+/** Validate a candidate before changing working production credentials.
+ * Provider response bodies and access tokens never leave this function. */
+export async function verifyGoogleRefreshToken(
+  client,
+  token,
+  targets,
+  request = fetch,
+) {
+  try {
+    if (!/^\d+$/.test(targets?.ga4Property ?? "") || !targets?.gscSite)
+      return false;
+    const response = await request("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        client_id: client.id,
+        client_secret: client.secret,
+        refresh_token: token,
+        grant_type: "refresh_token",
+      }),
+      signal: AbortSignal.timeout(30_000),
+    });
+    const body = await response.json();
+    if (
+      !response.ok ||
+      typeof body.access_token !== "string" ||
+      typeof body.scope !== "string"
+    )
+      return false;
+    const granted = new Set(body.scope.split(/\s+/));
+    if (
+      granted.size !== googleScopes.length ||
+      !googleScopes.every((scope) => granted.has(scope))
+    )
+      return false;
+    const headers = { Authorization: `Bearer ${body.access_token}` };
+    const checks = await Promise.all([
+      request(
+        `https://analyticsdata.googleapis.com/v1beta/properties/${targets.ga4Property}/metadata`,
+        { headers, signal: AbortSignal.timeout(30_000) },
+      ),
+      request("https://www.googleapis.com/webmasters/v3/sites", {
+        headers,
+        signal: AbortSignal.timeout(30_000),
+      }),
+    ]);
+    body.access_token = "";
+    if (!checks.every((result) => result.ok)) return false;
+    const sites = await checks[1].json();
+    return (
+      Array.isArray(sites.siteEntry) &&
+      sites.siteEntry.some(
+        (site) =>
+          site.siteUrl === targets.gscSite &&
+          site.permissionLevel !== "siteUnverifiedUser",
+      )
+    );
+  } catch {
+    return false;
+  }
+}
 
 // CLI token names may contain spaces. Wait for a full output line before
 // validating the official URL so a partial PTY chunk cannot become a link.
