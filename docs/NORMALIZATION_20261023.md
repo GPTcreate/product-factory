@@ -35,7 +35,7 @@
 
 ## 검증
 
-타입 검사, 223개 단위 테스트, 15개 migration의 embedded PostgreSQL 검증, 브라우저 fixture와 기존 진단·metadata·운영 문제·OAuth transport 회귀 검증을 수행했다. DB 검증에는 관리자+MFA 읽기, 직접 쓰기 거부, 저장 제약, 자동화 Secret 보존, 알림 중복 통합·해소를 포함한다.
+타입 검사, 225개 단위 테스트, 보호된 인증 전달 검사 7개, 15개 migration의 embedded PostgreSQL 검증, 브라우저 fixture와 기존 진단·metadata·운영 문제·OAuth transport 회귀 검증을 수행했다. 2026-10-23 18시 KST에 단위·인증·DB·타입·lint·format·build를 다시 통과했다. DB 검증에는 관리자+MFA 읽기, 직접 쓰기 거부, 저장 제약, 자동화 Secret 보존, 알림 중복 통합·해소를 포함한다.
 
 브라우저 fixture는 실제 운영 API를 차단하고 체크리스트·작업·목표·평가의 저장과 재조회, 주간 보고서 다운로드, 모바일 가로 넘침을 검증한다. 실제 공급자·Auth·cron의 성공 증거와 합성 검증을 구분한다.
 
@@ -56,16 +56,21 @@ DB migration을 먼저 적용하고 기존 `manage-factory`만 새 버전으로 
 | 연결 | 실제 확인 | 남은 일 |
 | --- | --- | --- |
 | Supabase Auth/DB | ACTIVE_HEALTHY, 본인 로그인·관리자 MFA와 실제 데이터 읽기 성공 | 없음 |
-| Bing 수동 수집 | 11행 저장, 10 clicks / 87 impressions | 예약 인증 복원 후 cron 검증 |
-| Google GA4 | 실제 실행 config_missing, OAuth 세 항목 미설정 | 기존 OAuth 설정 복원과 본인 동의·속성 권한 확인 |
-| GSC | 기존 Registry에서 disabled, 속성 매핑 없음 | 소유권·정확한 속성 확인 후 매핑 |
-| AdSense | 기존 Registry disabled, ADSENSE_ACCOUNT 미설정 | 승인된 계정·사이트가 있을 때만 기존 연결 복원 |
-| Provider 예약 수집·uptime | AUTOMATION_SECRET와 Vault automation_secret 미설정 | 기존 인증을 보호된 경로로 복원 후 준비·검증 |
+| Bing 수동·예약 수집 | 수동 11행 저장, 30일 10 clicks / 87 impressions. 예약 실행 `da0cd670-fe02-4ef0-b3b2-87113f450e03` success, 11행 저장(09:04 UTC) | 매일 04:20 UTC(13:20 KST) 활성 |
+| Google GA4 | 승인된 읽기 권한 동의·세 인증 항목 보호 저장 완료. 수동 `ed9194f8-0ad5-4e2f-af0f-062fee7120a0`, 예약 `3335d7d0-33b7-4a33-a2ab-2e0a1ef17990` 모두 success·50행 저장. 10/16~10/22 일별 7행·104 sessions와 화면 반영 확인 | 매일 04:10 UTC(13:10 KST) 활성. OAuth 테스트 모드의 7일 토큰 만료는 장기 운영 과제 |
+| GSC | 승인된 OAuth 계정의 Search Console은 속성 추가 안내 화면. Registry disabled, 속성 매핑 없음 | 확인된 소유 속성이 생긴 뒤 정확한 값으로 매핑 |
+| AdSense | 본인 계정의 `iposcore.kr`는 준비 중, Ads.txt 찾을 수 없음(10/15 갱신). Registry disabled, ADSENSE_ACCOUNT 미설정 | 사이트 승인·ads.txt 원본 사이트 조치 후 기존 연결 복원. 새 계정·사이트 생성 안 함 |
+| 자동화 인증 | 공식 CLI 로그인 완료. 기존 Edge에 AUTOMATION_SECRET을 보호 저장하고 System으로 빈 Vault 항목에 연결 | 값은 출력하지 않음. 기존 다른 인증 보존 |
+| uptime | 실제 예약 실행 09:04 UTC, IPOScore HTTP 200·ok=true 저장 | 매시 45분 활성. 90일 보존 정책 대상이던 기존 행은 0건 |
 | DB 운영 알림 | 예약 실행 2026-10-23 03:17 UTC succeeded, 매시 5분 정규 일정 복원 | DB 자체가 정지되면 함께 정지됨 |
 
-기존 인증이 없으면 새 발급·교체하지 않고 운영자 판단을 기다린다. Secret 값을 채팅이나 문서로 전달하지 않는다. 미설정 provider cron을 켜거나 반복 실패를 만들지 않았다. Supabase가 다시 정지하지 않는다는 보장은 하지 않으며 유료 요금제 전환도 수행하지 않았다.
+사용자는 기존 값이 없음을 확인한 뒤 신규 인증 설정을 명시적으로 승인했다. 이 승인은 초기의 재발급 금지 조건을 대체한다. 기존 Google Cloud 프로젝트에 웹 OAuth 클라이언트를 만들고, 현재 Windows 계정용 DPAPI 암호화 보관과 보호된 메모리 전달을 검증했다. 미사용 최초 클라이언트 폐기와 대체 생성도 별도로 승인받았다. 자세한 보호 절차와 테스트 모드 토큰의 7일 제한은 [OAuth 인계](OAUTH_HELPER.md)를 따른다. Secret 값은 채팅이나 문서에 전달하지 않는다.
 
-본인은 [기존 Supabase 프로젝트의 Edge Secrets](https://supabase.com/dashboard/project/nemkjxdxswwtrlufcykp/functions/secrets)에서 보호된 저장소의 기존 Google OAuth 세 항목과 AUTOMATION_SECRET을 복원한다. 필요한 Google 로그인·동의는 본인이 처리한다. 이후 System의 설정 존재 진단으로 확인하고 기존 자동화 인증 연결 → Bing 예약 실행 → Google 수동 실행 → 준비된 provider 예약 실행 순서로 검증한다. 값을 찾을 수 없다면 재발급 없이 중단한다. GSC 속성·AdSense 승인 정보를 추측해서 넣지 않는다.
+CLI 로그인은 기존 Supabase 브라우저 세션을 이용해 완료했다. 공식 페이지의 CLI 코드를 채팅·파일에 출력하지 않고 보호된 localhost receiver에 직접 전달했다. `AUTOMATION_SECRET`을 기존 Edge에 저장한 뒤 System의 보호된 동작으로 Vault에 연결했다. Bing·GA4·uptime의 기존 job을 각각 임시 매분 일정으로 검증하고 즉시 정규 일정으로 복원했다. 실제 cron 이력과 결과 저장을 모두 확인했으며 임시 일정은 남기지 않았다. 설정 화면 재시작 시 기존 CLI의 해당 프로젝트 접근을 먼저 검사해 불필요한 재로그인을 생략한다.
+
+사용자는 Google의 계속·읽기 권한 동의 버튼 진행을 명시적으로 승인했고 agent가 세 읽기 권한을 확인해 완료했다. refresh token은 전용 pipe와 ACK, 기존 CLI named pipe로만 Edge Secrets에 저장했다. 초기 GA4 실수집은 HTTP 403이었으며, Analytics 원본에서 Registry의 `16042438780`이 Property ID가 아닌 웹 스트림 ID임을 확인했다. 실제 IPOSCORE Property는 `557310412`, 스트림의 측정 ID `G-SZCS9GN9SN`은 공개 운영 HTML의 태그와 일치한다. 기존 GA4 일별 행이 0건임을 확인한 뒤 제품 편집에서 Property ID만 정정했고 정상 수집을 검증했다. 기본 Google 계정과 collector 계정이 달라질 수 있으므로 항상 승인된 본인 계정으로 전환해 대조한다.
+
+즉시 추가 로그인 입력은 없다. 남은 조건은 OAuth 앱 브랜딩·게시 준비와 테스트 모드 7일 제한 해소, 검증된 GSC 속성, AdSense 사이트 승인이다. GSC·AdSense job은 꺼 둔다. 미설정 공급자 job을 반복 실행하지 않는다. Supabase 재정지 방지나 유료 전환은 수행하지 않았다.
 
 Supabase 보안 advisor의 기존 경고는 `pg_net`의 public 설치, 관리자/MFA를 본문에서 검사하는 기존 SECURITY DEFINER RPC, leaked-password protection 미설정이다. 새 운영 테이블은 RLS를 적용했다. RPC는 실제 본문 권한 검사를 확인했으며 기존 호출을 끊는 일괄 권한 변경이나 extension 이동은 수행하지 않았다. [extension 안내](https://supabase.com/docs/guides/database/database-linter?lint=0014_extension_in_public), [RPC 안내](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable), [Auth 안내](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
 

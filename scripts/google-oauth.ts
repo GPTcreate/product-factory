@@ -18,7 +18,8 @@ try {
     port > 65535
   )
     throw new Error();
-  transport = openPrivateTransport();
+  // Allow bounded time for live provider checks and secret digest confirmation.
+  transport = openPrivateTransport(120_000);
   if (
     process.env.GOOGLE_OAUTH_REDIRECT &&
     process.env.GOOGLE_OAUTH_REDIRECT !== redirectUri
@@ -117,7 +118,7 @@ server.listen(port, "127.0.0.1", () =>
     `Open http://127.0.0.1:${port}/authorize locally. Redirect URI: ${redirectUri}`,
   ),
 );
-server.setTimeout(30_000);
+server.setTimeout(150_000);
 const deadline = setTimeout(() => {
   console.error("OAuth session expired.");
   server.close();

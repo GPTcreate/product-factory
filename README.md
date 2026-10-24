@@ -60,6 +60,8 @@ npx deno check supabase/functions/manage-sites/index.ts supabase/functions/manag
 
 [docs/SETUP.md](docs/SETUP.md): Supabase migration, Google/Bing/OAuth, Cloudflare Pages, P001 연결.
 
+[개인용 Google OAuth 설정 절차](docs/GOOGLE_OAUTH_PERSONAL_RUNBOOK.md): 기존 프로젝트에서 외부·운영 중 설정, 게시가 막힐 때 처리, 운영 토큰 보호 교체와 완료 체크리스트.
+
 [docs/ADSENSE.md](docs/ADSENSE.md): 공식 API 정의, 귀속 방식과 수익 계산.
 
 [docs/STATUS.md](docs/STATUS.md): 검증 결과, 운영 연결 전 남은 작업과 제한사항.

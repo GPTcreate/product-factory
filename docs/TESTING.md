@@ -5,7 +5,8 @@ Baseline: upstream commit `27b1c087d84fb86762cdc4eac31d7ec06cc9dea9` passed 127 
 ## Automated checks
 
 - `npm test`: upstream regression tests plus Product/Idea validation, weighted opportunity scores, AdSense request contract, header-order independence, attribution mismatch, currency mismatch, report truncation, duplicate dates, zero/no-data separation and adapter fixture integration.
-- `npm run test:db`: executes all 13 migration SQL files in PGlite (PostgreSQL), verifies CRUD, unique keys, upsert correction without duplication, integration reconciliation, historical attribution protection, cascading deletes on disposable fixtures, read denial for anon/non-admin/aal1, allowed reads for admin+aal2 and denial of browser writes. Hosted Auth helpers, Vault, pg_cron and pg_net are substitutes; network scheduling and real GoTrue MFA are outside this test.
+- `npm run test:db`: executes all 15 migration SQL files in PGlite (PostgreSQL), verifies CRUD, unique keys, upsert correction without duplication, integration reconciliation, historical attribution protection, cascading deletes on disposable fixtures, read denial for anon/non-admin/aal1, allowed reads for admin+aal2 and denial of browser writes. Hosted Auth helpers, Vault, pg_cron and pg_net are substitutes; network scheduling and real GoTrue MFA are outside this test.
+- `npm run test:auth-setup`: seven synthetic tests cover full CLI login URL parsing (including spaced names and partial PTY chunks), safe credential-page summaries, client project/callback restrictions, Host/Origin/CSRF enforcement, dotenv injection rejection and private delivery acceptance. The real Windows named-pipe test is skipped on Linux. No live credentials are used.
 - Deno checks the actual server entrypoints independently of the browser test type bridge.
 
 ## Browser test

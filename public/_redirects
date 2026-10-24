@@ -1,1 +1,3 @@
-/* /index.html 200
+# Pages serves matching static HTML first and applies its automatic SPA fallback
+# when no top-level 404.html exists. Explicit HTML rewrites can redirect back to
+# their clean URL and loop; a catch-all rewrite would hide the public pages.

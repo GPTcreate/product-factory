@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Product Factory는 운영자 자신의 웹사이트 성과와 운영 상태를 확인하는 개인용 관리 도구입니다."
+    />
+    <title>Product Factory 소개</title>
+    <style>
+      body {
+        font:
+          17px/1.8 system-ui,
+          sans-serif;
+        color: #203044;
+        background: #f6f8fb;
+        margin: 0;
+      }
+      main {
+        max-width: 760px;
+        margin: 8vh auto;
+        padding: 36px;
+        background: white;
+        border: 1px solid #dce3ec;
+        border-radius: 18px;
+      }
+      h1 {
+        line-height: 1.2;
+        font-size: 36px;
+      }
+      h2 {
+        font-size: 22px;
+        margin-top: 32px;
+      }
+      a {
+        color: #1859ad;
+        text-underline-offset: 4px;
+      }
+      nav {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+      small {
+        color: #546477;
+      }
+      @media (max-width: 600px) {
+        main {
+          margin: 16px;
+          padding: 24px;
+        }
+        h1 {
+          font-size: 30px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <small>개인용 웹사이트 운영 도구</small>
+      <h1>Product Factory</h1>
+      <p>
+        운영자 자신의 여러 웹사이트를 한곳에서 관리하고, 방문·검색 성과와 서비스
+        상태를 확인합니다.
+      </p>
+      <h2>사용하는 Google 데이터</h2>
+      <p>
+        운영자가 연결에 동의한 Google Analytics의 방문 통계, Search Console의
+        검색 성과와 사이트 정보, AdSense의 광고 성과 보고서를 읽기 전용으로
+        조회합니다. AdSense 수집은 별도로 연결한 경우에만 사용합니다.
+      </p>
+      <p>
+        수집한 보고서는 개인용 대시보드에서 성과 비교와 운영 점검에 사용합니다.
+        Google 계정의 데이터나 설정을 수정하는 권한은 요청하지 않습니다.
+      </p>
+      <h2>개인용 대시보드</h2>
+      <p>
+        실제 보고서와 관리 기능은 사전에 허용된 운영자 계정의 로그인 및 다중
+        인증 후 이용할 수 있습니다. Google 데이터 연결은 개인 운영 목적이며 일반
+        사용자 가입을 받지 않습니다.
+      </p>
+      <nav aria-label="서비스 안내">
+        <a href="/login">운영자 로그인</a>
+        <a href="/privacy">개인정보처리방침</a>
+        <a href="/terms">이용 안내</a>
+      </nav>
+    </main>
+  </body>
+</html>
