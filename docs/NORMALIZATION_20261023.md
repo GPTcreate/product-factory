@@ -1,5 +1,17 @@
 # Product Factory 정상화와 운영 기능
 
+## 2026-10-24 갱신
+
+이 절이 아래 10/23 연결 기록보다 최신이다. 기존 세 제품 IPOScore·Holdwise·오늘슬로프는 모두 GA4·Search Console·Bing 매핑이 있으며 최근 수집 9건이 success다. 새 제품 두 개의 0행 응답은 보고서 데이터 대기이며 실제 방문이 없다는 뜻으로 단정하지 않는다. GSC·GA4·Bing의 10/24 정규 cron 실행도 succeeded다. 기존 정규 일정과 데이터는 보존했고 열린 운영 알림은 0건이다.
+
+개인용 Google 인증을 위해 기존 Factory에 정적 소개·개인정보처리방침·이용 안내 페이지를 추가했다. 세 안내 경로는 HTTP 200이며 SDK나 데이터 조회 script가 없다. 관리자·MFA guard는 유지되고 익명 제품 상세 요청이 로그인으로 이동함을 실제 Pages 미리보기에서 검증했다. Pages의 HTML 주소 정규화와 충돌하는 rewrite 대신 기본 정적 파일 매칭과 SPA fallback을 사용한다.
+
+기능 소스 `650ab01`의 CI [40099082915](https://github.com/GPTcreate/product-factory/actions/runs/40099082915)는 성공했고 [PR 1](https://github.com/GPTcreate/product-factory/pull/1)을 `accec96`으로 병합해 기존 Pages에 배포했다. CLI 실응답의 SHA-256이 `value` 필드에 있는 차이를 보완한 `3cd53ac`도 CI [40099545709](https://github.com/GPTcreate/product-factory/actions/runs/40099545709) 성공 후 [PR 2](https://github.com/GPTcreate/product-factory/pull/2)를 `335a7c6`으로 병합했다. 단위 테스트 225개, 보안 설정 테스트 10개, migration/RLS 15개, 합성 OAuth transport 10개 검증을 통과했다.
+
+Google 브랜딩에 실제 안내 URL과 기존 Pages 승인 도메인을 저장해 `앱 게시` 버튼이 활성화됐다. 기존 Google 클라이언트의 암호화 보관본과 실제 Edge 설정 digest가 모두 일치한다. 현재 게시 상태는 여전히 테스트이며 최종 운영 전환과 본인 재동의의 실행 직전 확인을 기다린다. 새 토큰 교체는 아직 수행하지 않았고 기존 Google·예약 인증을 보존했다. 개인용 심사 예외와 동의 화면의 Google 경고는 별도이며, 새 운영 인증의 실제 교체와 수집 확인 전에는 7일 제한 해소를 완료로 기록하지 않는다.
+
+AdSense는 기존 사이트 승인과 연결 매핑이 남아 있어 수집을 활성화하지 않는다. 새 프로젝트, 운영 DB 초기화, 공용 core 변경, 다른 작업 중단은 수행하지 않았다.
+
 2026-10-23 기준. 기존 프로젝트를 복구하고 제품 출시·작업·평가 기록과 예약 운영 알림을 추가했다. 실제 공급자 연결 결과는 설정 존재 여부, API 호출, 저장과 화면 반영을 나눠 확인한다.
 
 ## 복구와 실제 연결
