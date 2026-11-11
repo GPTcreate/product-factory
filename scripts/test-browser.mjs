@@ -206,11 +206,13 @@ await page.route("https://fixture.supabase.test/**", async (route) => {
 });
 await page.goto("http://127.0.0.1:5187/tests/browser/index.html");
 await page.getByRole("link", { name: "제품", exact: true }).click();
-await page.getByRole("button", { name: "Register P001" }).click();
+await page
+  .getByRole("button", { name: "P001 · IPOScore 등록", exact: true })
+  .click();
 await mkdir("test-results", { recursive: true });
-await page.getByRole("navigation", { name: "Registration steps" }).waitFor();
+await page.getByRole("navigation", { name: "제품 등록 단계" }).waitFor();
 assert.equal(
-  await page.getByLabel("Active", { exact: true }).isChecked(),
+  await page.getByLabel("수집 활성화", { exact: true }).isChecked(),
   false,
 );
 await page.screenshot({ path: "test-results/F01-desktop.png", fullPage: true });
@@ -224,7 +226,7 @@ assert.equal(
 await page.screenshot({ path: "test-results/F01-mobile.png", fullPage: true });
 await page.setViewportSize({ width: 1440, height: 1000 });
 await page
-  .getByRole("button", { name: "Add product", exact: true })
+  .getByRole("button", { name: "제품 등록", exact: true })
   .last()
   .click();
 await page.getByText("IPOScore", { exact: true }).first().waitFor();
@@ -232,21 +234,21 @@ assert.equal(sites[0].product_code, "P001");
 assert.equal(sites[0].status, "LIVE");
 await page.getByRole("link").filter({ hasText: "IPOScore" }).first().click();
 await page.getByRole("button", { name: "제품 편집", exact: true }).click();
-await page.getByLabel("AdSense verified site domain").fill("iposcore.kr");
-await page.getByLabel("Enable AdSense").check();
-await page.getByRole("button", { name: "Save changes" }).click();
+await page.getByLabel("AdSense에서 확인한 사이트 도메인").fill("iposcore.kr");
+await page.getByLabel("AdSense 사용", { exact: true }).check();
+await page.getByRole("button", { name: "변경 저장", exact: true }).click();
 await page.getByRole("button", { name: "수익", exact: true }).click();
-await page.getByText("$2.00", { exact: true }).first().waitFor();
+await page.getByText("US$2.00", { exact: true }).first().waitFor();
 await page.getByRole("link", { name: "아이디어", exact: true }).click();
-await page.getByRole("button", { name: "Add idea", exact: true }).click();
-await page.getByLabel("Title", { exact: true }).fill("Fixture utility");
+await page.getByRole("button", { name: "아이디어 추가", exact: true }).click();
+await page.getByLabel("제목", { exact: true }).fill("Fixture utility");
 await page
-  .getByLabel("Problem / unmet need", { exact: true })
+  .getByLabel("해결할 문제·충족되지 않은 요구", { exact: true })
   .fill("A repeat task needs a simple answer");
-await page.getByRole("button", { name: "Save idea" }).click();
+await page.getByRole("button", { name: "아이디어 저장", exact: true }).click();
 await page.getByRole("button", { name: "Fixture utility" }).click();
-await page.getByLabel("Title", { exact: true }).fill("Updated utility");
-await page.getByRole("button", { name: "Save idea" }).click();
+await page.getByLabel("제목", { exact: true }).fill("Updated utility");
+await page.getByRole("button", { name: "아이디어 저장", exact: true }).click();
 await page.getByRole("button", { name: "Updated utility" }).waitFor();
 assert.equal(ideas[0].title, "Updated utility");
 await page.getByRole("link", { name: "주간 관리", exact: true }).click();
@@ -269,8 +271,8 @@ await page.screenshot({
   fullPage: true,
 });
 await page.getByRole("link", { name: "전체 현황", exact: true }).click();
-await page.getByText("Build a portfolio that compounds.").waitFor();
-await page.getByText("Not Connected", { exact: true }).first().waitFor();
+await page.getByText("제품을 만들고, 성과를 쌓아가세요.").waitFor();
+await page.getByText("연결 안 됨", { exact: true }).first().waitFor();
 await page.screenshot({
   path: "test-results/overview-desktop.png",
   fullPage: true,
@@ -282,9 +284,9 @@ await page.screenshot({
   fullPage: true,
 });
 await page.getByRole("link", { name: "아이디어", exact: true }).click();
-await page.getByRole("button", { name: "Delete", exact: true }).click();
-await page.getByRole("button", { name: "Confirm delete" }).click();
-await page.getByText("No ideas in this market yet.").waitFor();
+await page.getByRole("button", { name: "삭제", exact: true }).click();
+await page.getByRole("button", { name: "삭제 확인", exact: true }).click();
+await page.getByText("이 시장에 등록한 아이디어가 없습니다.").waitFor();
 assert.equal(ideas.length, 0);
 await page.setViewportSize({ width: 1440, height: 1000 });
 await page.getByRole("link", { name: "제품", exact: true }).click();

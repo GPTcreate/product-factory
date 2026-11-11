@@ -3,7 +3,7 @@ const DASH = "-";
 /** Compact-ish integer formatting, e.g. 12,345. Null/undefined → em dash. */
 export function formatNumber(value: number | null | undefined): string {
   if (value == null) return DASH;
-  return value.toLocaleString("en-US");
+  return value.toLocaleString("ko-KR");
 }
 
 /** A 0–1 ratio rendered as a percentage, e.g. 0.0531 → "5.31%". */

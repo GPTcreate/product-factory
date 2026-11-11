@@ -22,9 +22,7 @@ export function MfaChallengePage() {
     (async () => {
       const { data, error } = await supabase.auth.mfa.listFactors();
       if (error) {
-        setLoadError(
-          "Could not load your authenticator. Please sign in again.",
-        );
+        setLoadError("인증 앱 정보를 불러오지 못했습니다. 다시 로그인하세요.");
         return;
       }
       const verified = (data?.totp ?? []).find((f) => f.status === "verified");
@@ -43,7 +41,7 @@ export function MfaChallengePage() {
     setVerifyError(null);
 
     if (!/^\d{6}$/.test(code)) {
-      setVerifyError("Enter the 6-digit code from your authenticator app.");
+      setVerifyError("인증 앱의 6자리 코드를 입력하세요.");
       return;
     }
 
@@ -52,7 +50,7 @@ export function MfaChallengePage() {
       const { data: challenge, error: challengeError } =
         await supabase.auth.mfa.challenge({ factorId });
       if (challengeError || !challenge) {
-        setVerifyError("Could not start verification. Please try again.");
+        setVerifyError("인증을 시작하지 못했습니다. 다시 시도해 주세요.");
         return;
       }
       const { error: verifyErr } = await supabase.auth.mfa.verify({
@@ -61,7 +59,9 @@ export function MfaChallengePage() {
         code,
       });
       if (verifyErr) {
-        setVerifyError("That code didn't match or has expired. Try again.");
+        setVerifyError(
+          "인증 코드가 일치하지 않거나 만료되었습니다. 다시 시도하세요.",
+        );
         return;
       }
       await refresh(); // session is now aal2
@@ -72,22 +72,19 @@ export function MfaChallengePage() {
   };
 
   return (
-    <AuthShell
-      title="Two-factor verification"
-      subtitle="Enter the 6-digit code from your authenticator app"
-    >
+    <AuthShell title="2단계 인증" subtitle="인증 앱의 6자리 코드를 입력하세요.">
       {loadError && <Alert tone="error">{loadError}</Alert>}
 
       {!factorId && !loadError && (
         <div className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
-          <Spinner /> Loading…
+          <Spinner /> 불러오는 중…
         </div>
       )}
 
       {factorId && (
         <form onSubmit={onVerify} className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="code">6-digit code</Label>
+            <Label htmlFor="code">6자리 인증 코드</Label>
             <Input
               id="code"
               inputMode="numeric"
@@ -107,7 +104,7 @@ export function MfaChallengePage() {
           </div>
 
           <Button type="submit" className="w-full" loading={verifying}>
-            Verify
+            인증하기
           </Button>
         </form>
       )}
@@ -118,7 +115,7 @@ export function MfaChallengePage() {
           onClick={() => void signOut()}
           className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
         >
-          Sign out
+          로그아웃
         </button>
       </div>
     </AuthShell>

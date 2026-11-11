@@ -39,12 +39,12 @@ describe("metadata preview", () => {
     expect(preview.fields).not.toHaveProperty("is_active");
   });
   it("rejects broken JSON, unsupported formats and missing required fields", () => {
-    expect(() => previewMetadata("{", [])).toThrow("Invalid JSON");
-    expect(() => read([])).toThrow("Unsupported");
-    expect(() => read({ name: "Example" })).toThrow("required");
+    expect(() => previewMetadata("{", [])).toThrow("JSON 형식");
+    expect(() => read([])).toThrow("지원하지 않는");
+    expect(() => read({ name: "Example" })).toThrow("필수");
     expect(() =>
       read({ ...document, analytics: { ga4_property_id: "G-123" } }),
-    ).toThrow("numeric");
+    ).toThrow("숫자");
   });
   it("finds existing products and protects existing mapping until explicitly selected", () => {
     const preview = read(document, [site]);
@@ -61,7 +61,7 @@ describe("metadata preview", () => {
   it("rejects conflicting Registry matches and AdSense ownership", () => {
     expect(() =>
       read(document, [site, { ...site, id: "other", product_code: "P999" }]),
-    ).toThrow("different products");
+    ).toThrow("서로 다른 제품");
     expect(() =>
       read(document, [
         {
@@ -71,21 +71,21 @@ describe("metadata preview", () => {
           adsense_mapping_key: "example.com",
         },
       ]),
-    ).toThrow("another product");
+    ).toThrow("다른 제품");
   });
   it("rejects nested secrets and URL credentials without returning secret values", () => {
     expect(() =>
       read({ ...document, extra: { refresh_token: "hidden-sentinel" } }),
-    ).toThrow("Remove credentials");
+    ).toThrow("인증정보");
     expect(() =>
       read({ ...document, website_url: "https://user:password@example.com" }),
-    ).toThrow("credentials");
+    ).toThrow("인증정보");
     expect(() =>
       read({
         ...document,
         website_url: "https://example.com?token=hidden-sentinel",
       }),
-    ).toThrow("query");
+    ).toThrow("쿼리");
     expect(
       read({ ...document, core_action_name: "ignored", extra: "ignored" })
         .fields,
@@ -109,7 +109,7 @@ describe("metadata preview", () => {
     }
     expect(error).toBeInstanceOf(Error);
     expect((error as Error).message).toContain(
-      "credentials, query parameters or fragments",
+      "인증정보·쿼리 매개변수·페이지 위치 표시",
     );
     expect((error as Error).message).not.toContain("hidden-sentinel");
   });

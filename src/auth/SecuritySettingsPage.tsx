@@ -18,7 +18,7 @@ export function SecuritySettingsPage() {
   const loadFactors = useCallback(async () => {
     const { data, error: listError } = await supabase.auth.mfa.listFactors();
     if (listError) {
-      setError("Could not load authenticators.");
+      setError("인증 앱 정보를 불러오지 못했습니다.");
       return;
     }
     setFactors(data?.all ?? []);
@@ -32,7 +32,7 @@ export function SecuritySettingsPage() {
     setError(null);
     const { error: unErr } = await supabase.auth.mfa.unenroll({ factorId });
     if (unErr) {
-      setError("Could not remove that authenticator.");
+      setError("인증 앱을 삭제하지 못했습니다.");
       return;
     }
     setConfirmRemove(null);
@@ -46,9 +46,9 @@ export function SecuritySettingsPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="text-xl font-semibold">Security</h1>
+        <h1 className="text-xl font-semibold">보안</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Manage your account and two-factor authentication.
+          계정과 2단계 인증을 관리합니다.
         </p>
       </div>
 
@@ -56,15 +56,15 @@ export function SecuritySettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Account</CardTitle>
+          <CardTitle>계정</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
-          <Row label="Email" value={user?.email ?? "-"} />
+          <Row label="이메일" value={user?.email ?? "-"} />
           <Row
-            label="Assurance level"
+            label="인증 수준"
             value={
               currentLevel === "aal2"
-                ? "aal2 - MFA verified"
+                ? "2단계 인증 완료 (aal2)"
                 : (currentLevel ?? "-")
             }
           />
@@ -73,16 +73,16 @@ export function SecuritySettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Authenticator apps</CardTitle>
+          <CardTitle>인증 앱</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {factors === null ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Spinner /> Loading…
+              <Spinner /> 불러오는 중…
             </div>
           ) : factors.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No authenticators enrolled.
+              등록된 인증 앱이 없습니다.
             </p>
           ) : (
             <ul className="divide-y divide-border">
@@ -93,32 +93,33 @@ export function SecuritySettingsPage() {
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">
-                      {factor.friendly_name || "Authenticator"}
+                      {factor.friendly_name || "인증 앱"}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {factor.factor_type.toUpperCase()} · {factor.status}
+                      {factor.factor_type.toUpperCase()} ·{" "}
+                      {factor.status === "verified" ? "인증 완료" : "인증 전"}
                     </p>
                   </div>
                   {confirmRemove === factor.id ? (
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-muted-foreground">
                         {verifiedCount <= 1
-                          ? "This is your last factor - you'll need to re-enroll."
-                          : "Remove?"}
+                          ? "마지막 인증 수단입니다. 삭제하면 다시 등록해야 합니다."
+                          : "삭제할까요?"}
                       </span>
                       <Button
                         size="sm"
                         variant="danger"
                         onClick={() => void onRemove(factor.id)}
                       >
-                        Confirm
+                        확인
                       </Button>
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => setConfirmRemove(null)}
                       >
-                        Cancel
+                        취소
                       </Button>
                     </div>
                   ) : (
@@ -127,7 +128,7 @@ export function SecuritySettingsPage() {
                       variant="secondary"
                       onClick={() => setConfirmRemove(factor.id)}
                     >
-                      Remove
+                      삭제
                     </Button>
                   )}
                 </li>
@@ -140,7 +141,7 @@ export function SecuritySettingsPage() {
       </Card>
 
       <Button variant="secondary" onClick={() => void signOut()}>
-        Sign out
+        로그아웃
       </Button>
     </div>
   );
@@ -176,7 +177,7 @@ function AddAuthenticator({ onAdded }: { onAdded: () => Promise<void> }) {
         friendlyName: `Authenticator ${new Date().toISOString()}`,
       });
       if (enrollError || !data) {
-        setError("Could not start enrollment.");
+        setError("인증 앱 등록을 시작하지 못했습니다.");
         return;
       }
       setEnroll({
@@ -194,7 +195,7 @@ function AddAuthenticator({ onAdded }: { onAdded: () => Promise<void> }) {
     if (!enroll) return;
     setError(null);
     if (!/^\d{6}$/.test(code)) {
-      setError("Enter the 6-digit code.");
+      setError("6자리 인증 코드를 입력하세요.");
       return;
     }
     setBusy(true);
@@ -202,7 +203,7 @@ function AddAuthenticator({ onAdded }: { onAdded: () => Promise<void> }) {
       const { data: challenge, error: challengeError } =
         await supabase.auth.mfa.challenge({ factorId: enroll.factorId });
       if (challengeError || !challenge) {
-        setError("Could not start verification.");
+        setError("인증을 시작하지 못했습니다.");
         return;
       }
       const { error: verifyError } = await supabase.auth.mfa.verify({
@@ -211,7 +212,7 @@ function AddAuthenticator({ onAdded }: { onAdded: () => Promise<void> }) {
         code,
       });
       if (verifyError) {
-        setError("That code didn't match. Try again.");
+        setError("인증 코드가 일치하지 않습니다. 다시 시도하세요.");
         return;
       }
       setEnroll(null);
@@ -225,7 +226,7 @@ function AddAuthenticator({ onAdded }: { onAdded: () => Promise<void> }) {
   if (!enroll) {
     return (
       <Button size="sm" variant="secondary" loading={busy} onClick={start}>
-        Add another authenticator
+        인증 앱 추가
       </Button>
     );
   }
@@ -239,12 +240,12 @@ function AddAuthenticator({ onAdded }: { onAdded: () => Promise<void> }) {
       <div className="flex justify-center">
         <img
           src={enroll.qrCode}
-          alt="TOTP QR code"
+          alt="인증 앱 등록용 QR 코드"
           className="h-40 w-40 rounded-md border border-border bg-white p-2"
         />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="add-secret">Manual code</Label>
+        <Label htmlFor="add-secret">직접 입력용 코드</Label>
         <Input
           id="add-secret"
           readOnly
@@ -254,7 +255,7 @@ function AddAuthenticator({ onAdded }: { onAdded: () => Promise<void> }) {
         />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="add-code">6-digit code</Label>
+        <Label htmlFor="add-code">6자리 인증 코드</Label>
         <Input
           id="add-code"
           inputMode="numeric"
@@ -268,7 +269,7 @@ function AddAuthenticator({ onAdded }: { onAdded: () => Promise<void> }) {
       </div>
       <div className="flex gap-2">
         <Button size="sm" type="submit" loading={busy}>
-          Verify
+          인증하기
         </Button>
         <Button
           size="sm"
@@ -279,7 +280,7 @@ function AddAuthenticator({ onAdded }: { onAdded: () => Promise<void> }) {
             setCode("");
           }}
         >
-          Cancel
+          취소
         </Button>
       </div>
     </form>

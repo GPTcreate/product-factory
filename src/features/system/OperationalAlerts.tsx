@@ -3,6 +3,9 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useSites } from "@/lib/hooks";
 import { usePrivacyMode } from "@/lib/privacy";
+import { readableError } from "@/lib/ui-errors";
+import { SOURCE_LABEL } from "@/lib/sources";
+import { absoluteTime } from "@/lib/dates";
 import { Button } from "@/components/ui/button";
 
 export function OperationalAlerts() {
@@ -29,14 +32,14 @@ export function OperationalAlerts() {
         { body: { action: "alert.ack", id } },
       );
       if (error || !data?.ok)
-        throw new Error("Alert acknowledgement was not saved.");
+        throw new Error("알림 확인 처리를 저장하지 못했습니다.");
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["operational-alerts"] }),
   });
   if (privacy.enabled)
     return (
       <section className="factory-panel">
-        Operational alerts hidden in privacy mode.
+        데이터 숨김 모드에서는 운영 알림을 표시하지 않습니다.
       </section>
     );
   return (
@@ -47,11 +50,13 @@ export function OperationalAlerts() {
         처리는 원인을 해결하지 않습니다. 외부 메시지는 발송하지 않습니다. DB
         자체가 정지되면 이 모니터도 실행되지 않습니다.
       </p>
-      {query.isLoading && <p>Loading alerts…</p>}
+      {query.isLoading && <p>알림 불러오는 중…</p>}
       {query.isError && (
         <p role="alert">
           알림을 읽지 못했습니다.{" "}
-          <Button onClick={() => void query.refetch()}>Retry alerts</Button>
+          <Button onClick={() => void query.refetch()}>
+            알림 다시 불러오기
+          </Button>
         </p>
       )}
       {query.data?.length === 0 && (
@@ -66,13 +71,27 @@ export function OperationalAlerts() {
             className="text-primary underline"
             to={`/products/${alert.site_id}`}
           >
-            {sites.data?.find((s) => s.id === alert.site_id)?.name ?? "Product"}{" "}
-            · {alert.source} · {alert.severity}
+            {sites.data?.find((s) => s.id === alert.site_id)?.name ?? "제품"} ·{" "}
+            {SOURCE_LABEL[alert.source]} ·{" "}
+            {
+              { info: "안내", warning: "주의", critical: "긴급" }[
+                alert.severity
+              ]
+            }
           </Link>
-          <p className="text-sm">{alert.message}</p>
-          <p className="text-xs">최근 확인 {alert.last_seen_at}</p>
+          <p className="text-sm">
+            {readableError(
+              alert.message,
+              "운영 점검이 필요합니다. 해당 제품의 수집 이력을 확인하세요.",
+            )}
+          </p>
+          <p className="text-xs">
+            최근 확인 {absoluteTime(alert.last_seen_at)}
+          </p>
           {alert.acknowledged_at ? (
-            <p className="text-xs">운영자 확인 {alert.acknowledged_at}</p>
+            <p className="text-xs">
+              운영자 확인 {absoluteTime(alert.acknowledged_at)}
+            </p>
           ) : (
             <Button
               size="sm"
@@ -80,7 +99,7 @@ export function OperationalAlerts() {
               loading={ack.isPending}
               onClick={() => ack.mutate(alert.id)}
             >
-              Acknowledge alert
+              알림 확인 처리
             </Button>
           )}
         </article>

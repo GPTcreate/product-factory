@@ -7,7 +7,7 @@ export function Spinner({ className }: { className?: string }) {
   );
 }
 
-export function FullPageSpinner({ label = "Loading" }: { label?: string }) {
+export function FullPageSpinner({ label = "불러오는 중" }: { label?: string }) {
   return (
     <div
       className="flex min-h-screen items-center justify-center"

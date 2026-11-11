@@ -220,8 +220,8 @@ describe("AdSense attribution and reporting", () => {
     ).toBeNull();
   });
   it("distinguishes not connected, absent data and zero", () => {
-    expect(metricState(false, false, "0")).toBe("Not Connected");
-    expect(metricState(true, false, "0")).toBe("No Data");
+    expect(metricState(false, false, "0")).toBe("연결 안 됨");
+    expect(metricState(true, false, "0")).toBe("자료 없음");
     expect(metricState(true, true, "0")).toBe("0");
   });
   it("fixture E2E: OAuth → report → idempotent upsert twice", async () => {

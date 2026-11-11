@@ -8,11 +8,16 @@ import { absoluteTime } from "@/lib/dates";
 import { formatDuration, formatNumber } from "@/lib/format";
 import type { SyncSource, SyncStatus, TriggerType } from "@/types/database";
 import { SyncRunsTable } from "@/features/sync-runs/SyncRunsTable";
+import {
+  SYNC_STATUS_LABELS,
+  SYNC_TRIGGER_LABELS,
+} from "@/components/status/sync-labels";
 import { SyncStatusPill } from "@/components/status/SyncStatusPill";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { usePrivacyMode } from "@/lib/privacy";
+import { readableError } from "@/lib/ui-errors";
 
 const STATUSES: SyncStatus[] = ["success", "partial", "failed", "running"];
 const TRIGGERS: TriggerType[] = ["scheduled", "manual", "backfill"];
@@ -42,19 +47,19 @@ export function SyncRunsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold">Sync history</h1>
+        <h1 className="text-xl font-semibold">수집 이력</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Every sync attempt across the portfolio.
+          포트폴리오 전체의 수집 실행 내역을 확인합니다.
         </p>
       </div>
 
       <div className="flex flex-wrap gap-2">
         <Select
-          label="Website"
+          label="제품"
           value={filters.siteId ?? ""}
           onChange={(v) => update({ siteId: v || undefined })}
           options={[
-            { value: "", label: "All websites" },
+            { value: "", label: "전체 제품" },
             ...(sites ?? []).map((s) => ({
               value: s.id,
               label: privacy.maskText(s.name, `sync-filter:${s.id}:name`),
@@ -62,36 +67,42 @@ export function SyncRunsPage() {
           ]}
         />
         <Select
-          label="Source"
+          label="수집 소스"
           value={filters.source ?? ""}
           onChange={(v) => update({ source: (v || undefined) as SyncSource })}
           options={[
-            { value: "", label: "All sources" },
+            { value: "", label: "전체 소스" },
             ...SOURCES.map((s) => ({ value: s, label: SOURCE_LABEL[s] })),
           ]}
         />
         <Select
-          label="Status"
+          label="상태"
           value={filters.status ?? ""}
           onChange={(v) => update({ status: (v || undefined) as SyncStatus })}
           options={[
-            { value: "", label: "All statuses" },
-            ...STATUSES.map((s) => ({ value: s, label: s })),
+            { value: "", label: "전체 상태" },
+            ...STATUSES.map((s) => ({
+              value: s,
+              label: SYNC_STATUS_LABELS[s],
+            })),
           ]}
         />
         <Select
-          label="Trigger"
+          label="실행 방식"
           value={filters.triggerType ?? ""}
           onChange={(v) =>
             update({ triggerType: (v || undefined) as TriggerType })
           }
           options={[
-            { value: "", label: "All triggers" },
-            ...TRIGGERS.map((t) => ({ value: t, label: t })),
+            { value: "", label: "전체 실행 방식" },
+            ...TRIGGERS.map((t) => ({
+              value: t,
+              label: SYNC_TRIGGER_LABELS[t],
+            })),
           ]}
         />
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
-          Since
+          시작일
           <input
             type="date"
             value={filters.since ?? ""}
@@ -105,8 +116,8 @@ export function SyncRunsPage() {
       {isError && <ErrorState onRetry={() => void refetch()} />}
       {runs && runs.length === 0 && (
         <EmptyState
-          title="No sync runs match these filters"
-          description="Adjust the filters above, or run a sync to generate history."
+          title="조건에 맞는 수집 이력이 없습니다"
+          description="조회 조건을 변경하거나 수집 실행 후 이력을 확인하세요."
         />
       )}
       {runs && runs.length > 0 && (
@@ -176,7 +187,7 @@ function RunDetailPanel({
         className="h-full w-full max-w-md overflow-y-auto bg-card p-5 shadow-xl"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
-        aria-label="Sync run detail"
+        aria-label="수집 실행 상세"
       >
         <div className="flex items-start justify-between">
           <div>
@@ -187,12 +198,13 @@ function RunDetailPanel({
               )}
             </h2>
             <p className="text-xs text-muted-foreground">
-              {SOURCE_LABEL[run.source]} · {run.trigger_type}
+              {SOURCE_LABEL[run.source]} ·{" "}
+              {SYNC_TRIGGER_LABELS[run.trigger_type]}
             </p>
           </div>
           <button
             onClick={onClose}
-            aria-label="Close"
+            aria-label="닫기"
             className="rounded-md p-1 text-muted-foreground hover:bg-muted"
           >
             <X className="h-4 w-4" />
@@ -200,20 +212,17 @@ function RunDetailPanel({
         </div>
 
         <div className="mt-4 space-y-2 text-sm">
+          <Detail label="상태" value={<SyncStatusPill status={run.status} />} />
           <Detail
-            label="Status"
-            value={<SyncStatusPill status={run.status} />}
-          />
-          <Detail
-            label="Started"
+            label="시작 시각"
             value={privacy.enabled ? "********" : absoluteTime(run.started_at)}
           />
           <Detail
-            label="Finished"
+            label="종료 시각"
             value={privacy.enabled ? "********" : absoluteTime(run.finished_at)}
           />
           <Detail
-            label="Requested range"
+            label="요청 기간"
             value={
               privacy.enabled
                 ? "********"
@@ -223,7 +232,7 @@ function RunDetailPanel({
             }
           />
           <Detail
-            label="Duration"
+            label="소요 시간"
             value={
               privacy.enabled
                 ? `${formatNumber(
@@ -236,7 +245,7 @@ function RunDetailPanel({
             }
           />
           <Detail
-            label="Rows fetched"
+            label="가져온 행 수"
             value={formatNumber(
               privacy.maskNumber(
                 run.rows_fetched,
@@ -245,7 +254,7 @@ function RunDetailPanel({
             )}
           />
           <Detail
-            label="Rows written"
+            label="저장한 행 수"
             value={formatNumber(
               privacy.maskNumber(
                 run.rows_written,
@@ -253,17 +262,20 @@ function RunDetailPanel({
               ),
             )}
           />
-          <Detail label="Error code" value={run.error_code ?? "-"} />
+          <Detail label="오류 코드" value={run.error_code ?? "-"} />
         </div>
 
         {run.error_message && (
           <div className="mt-4">
             <p className="text-xs font-medium text-muted-foreground">
-              Error message
+              오류 내용
             </p>
             <p className="mt-1 rounded-md border border-critical/30 bg-critical/5 p-2 text-xs text-foreground">
               {privacy.maskText(
-                run.error_message,
+                readableError(
+                  { message: run.error_message, code: run.error_code },
+                  "수집에 실패했습니다. 오류 코드를 확인하세요.",
+                ),
                 `run-detail:${run.id}:error`,
               )}
             </p>
@@ -271,7 +283,9 @@ function RunDetailPanel({
         )}
 
         <div className="mt-4">
-          <p className="text-xs font-medium text-muted-foreground">Metadata</p>
+          <p className="text-xs font-medium text-muted-foreground">
+            실행 메타데이터
+          </p>
           <pre className="mt-1 overflow-x-auto rounded-md border border-border bg-muted/40 p-2 text-xs">
             {privacy.enabled
               ? "********"

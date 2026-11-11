@@ -56,6 +56,24 @@ export interface TrajectoryMetricResult {
   forecast: Forecast | null;
 }
 
+// Keep metric/data keys and existing label identifiers stable; localize display only.
+const TRAJECTORY_LABELS: Record<string, string> = {
+  sessions: "세션 수",
+  active_users: "활성 사용자 수",
+  screen_page_views: "페이지 조회 수",
+  engaged_sessions: "참여 세션 수",
+  google_clicks: "Google 검색 클릭 수",
+  google_impressions: "Google 검색 노출 수",
+  bing_clicks: "Bing 검색 클릭 수",
+  bing_impressions: "Bing 검색 노출 수",
+};
+
+export function trajectoryMetricLabel(
+  metric: Pick<TrajectoryMetricResult, "key" | "label">,
+): string {
+  return TRAJECTORY_LABELS[metric.key] ?? metric.label;
+}
+
 interface TrajectoryMetricDef {
   key: string;
   label: string;

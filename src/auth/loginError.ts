@@ -22,23 +22,22 @@ export function describeLoginError(error: unknown) {
       : undefined;
   const message = "message" in value ? value.message : undefined;
   let category = "unknown";
-  let text =
-    "Unable to sign in. Please try again or contact the administrator.";
+  let text = "로그인하지 못했습니다. 다시 시도하거나 관리자에게 문의하세요.";
 
   if (code === "invalid_credentials") {
     category = "credentials";
-    text = "Invalid email or password.";
+    text = "이메일 또는 비밀번호가 올바르지 않습니다.";
   } else if (
     status === 429 ||
     code === "over_request_rate_limit" ||
     code === "over_email_send_rate_limit"
   ) {
     category = "rate_limit";
-    text = "Too many sign-in attempts. Wait a few minutes before trying again.";
+    text = "로그인 시도가 너무 많습니다. 잠시 기다린 뒤 다시 시도하세요.";
   } else if (typeof status === "number" && status >= 500) {
     category = "service";
     text =
-      "The sign-in service is temporarily unavailable. Please try again later.";
+      "로그인 서비스를 일시적으로 이용할 수 없습니다. 잠시 후 다시 시도하세요.";
   } else if (
     (name === "AuthRetryableFetchError" && status === 0) ||
     code === "request_timeout" ||
@@ -48,18 +47,17 @@ export function describeLoginError(error: unknown) {
   ) {
     category = "network";
     text =
-      "Could not reach the sign-in service. Check your connection and try again.";
+      "로그인 서비스에 연결하지 못했습니다. 인터넷 연결을 확인하고 다시 시도하세요.";
   } else if (name === "SecurityError" || name === "QuotaExceededError") {
     category = "browser_storage";
     text =
-      "The browser could not save the session. Check its storage and privacy settings.";
+      "브라우저에 로그인 정보를 저장하지 못했습니다. 저장 공간과 개인정보 설정을 확인하세요.";
   } else if (message === "Invalid API key") {
     category = "configuration";
-    text =
-      "The sign-in service configuration is invalid. Contact the administrator.";
+    text = "로그인 서비스 설정이 올바르지 않습니다. 관리자에게 문의하세요.";
   } else if (code === "captcha_failed") {
     category = "verification";
-    text = "The security check could not be completed. Please try again.";
+    text = "보안 확인을 완료하지 못했습니다. 다시 시도하세요.";
   }
 
   return {

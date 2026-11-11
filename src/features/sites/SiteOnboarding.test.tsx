@@ -34,12 +34,12 @@ describe("product registration guidance", () => {
   });
   it("keeps new products inactive and saves valid values through the existing API", async () => {
     render(<SiteFormDialog mode="create" preset={valid} onClose={vi.fn()} />);
-    expect(screen.getByLabelText("Active")).not.toBeChecked();
+    expect(screen.getByLabelText("수집 활성화")).not.toBeChecked();
     expect(
-      screen.getByRole("navigation", { name: "Registration steps" }),
+      screen.getByRole("navigation", { name: "제품 등록 단계" }),
     ).toBeInTheDocument();
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Add product" }));
+      fireEvent.click(screen.getByRole("button", { name: "제품 등록" }));
     });
     await vi.waitFor(() => expect(mutate).toHaveBeenCalled());
     expect(mutate.mock.calls[0][0]).toMatchObject({
@@ -49,17 +49,17 @@ describe("product registration guidance", () => {
   });
   it("defaults new products inactive without a preset", () => {
     render(<SiteFormDialog mode="create" onClose={vi.fn()} />);
-    expect(screen.getByLabelText("Active")).not.toBeChecked();
+    expect(screen.getByLabelText("수집 활성화")).not.toBeChecked();
   });
   it.each([
-    ["ga4_property_id", "G-XXXX", "numeric"],
-    ["gsc_property", "example.com", "GSC"],
+    ["ga4_property_id", "G-XXXX", "숫자"],
+    ["gsc_property", "example.com", "Search Console"],
     ["bing_site_url", "example.com", "Bing"],
   ])("rejects invalid %s without a request", (key, value, message) => {
     expect(onboardingError({ ...valid, [key]: value })).toContain(message);
   });
   it("detects duplicates but permits editing the same product", () => {
-    expect(onboardingError(valid, [site])).toContain("already registered");
+    expect(onboardingError(valid, [site])).toContain("이미 등록된");
     expect(onboardingError(valid, [site], site.id)).toBeNull();
   });
   it("preserves existing status, Active and AdSense mapping on edit", async () => {
@@ -70,9 +70,9 @@ describe("product registration guidance", () => {
         onClose={vi.fn()}
       />,
     );
-    expect(screen.getByLabelText("Active")).toBeChecked();
+    expect(screen.getByLabelText("수집 활성화")).toBeChecked();
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+      fireEvent.click(screen.getByRole("button", { name: "변경 저장" }));
     });
     await vi.waitFor(() => expect(mutate).toHaveBeenCalled());
     expect(mutate.mock.calls[0][0]).toMatchObject({
@@ -95,7 +95,7 @@ describe("product registration guidance", () => {
     );
     render(<SiteFormDialog mode="create" preset={valid} onClose={close} />);
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Add product" }));
+      fireEvent.click(screen.getByRole("button", { name: "제품 등록" }));
     });
     expect(
       await screen.findByText("Server rejected this product"),

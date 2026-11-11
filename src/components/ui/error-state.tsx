@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
  * or database error, with an optional retry.
  */
 export function ErrorState({
-  title = "Something went wrong",
-  description = "We couldn't load this data. Please try again.",
+  title = "오류가 발생했습니다",
+  description = "데이터를 불러오지 못했습니다. 다시 시도해 주세요.",
   onRetry,
 }: {
   title?: string;
@@ -28,7 +28,7 @@ export function ErrorState({
           className="mt-4"
           onClick={onRetry}
         >
-          Try again
+          다시 시도
         </Button>
       )}
     </div>

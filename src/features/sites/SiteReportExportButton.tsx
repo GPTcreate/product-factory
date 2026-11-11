@@ -19,6 +19,7 @@ import { forecastSeries } from "@/lib/forecast";
 import { clicksSeries, sessionsSeries } from "@/lib/series";
 import { Button } from "@/components/ui/button";
 import { usePrivacyMode } from "@/lib/privacy";
+import { readableError } from "@/lib/ui-errors";
 
 const SITE_REPORT_RANGES = [
   90, 180, 360,
@@ -41,8 +42,7 @@ const EMPTY_TERMS: SiteSearchTerms = {
 };
 
 function errorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message;
-  return "Unknown export error";
+  return readableError(error, "보고서를 내보내지 못했습니다. 다시 시도하세요.");
 }
 
 function maskSite(
@@ -301,7 +301,7 @@ export function SiteReportExportButton({ site }: { site: SiteWithStatuses }) {
         const chosen = clicksForecast ?? sessionsForecast;
         if (chosen) {
           trajectory = {
-            metricName: clicksForecast ? "Google clicks" : "sessions",
+            metricName: clicksForecast ? "Google 검색 클릭 수" : "세션 수",
             horizonDays: 28,
             horizonTotal: chosen.horizonTotal,
             trendPerWeek: chosen.trendPerDay * 7,
@@ -310,7 +310,7 @@ export function SiteReportExportButton({ site }: { site: SiteWithStatuses }) {
         }
       }
 
-      reportModule.saveSitePerformanceReport({
+      await reportModule.saveSitePerformanceReport({
         site: maskSite(site, privacy),
         ranges: ranges.map((range) => maskRange(range, privacy)),
         syncRuns: maskRuns(syncRuns, privacy),

@@ -36,10 +36,10 @@ export function SearchTermsSection({
   if (!hasData) {
     return (
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold">Search terms &amp; pages</h2>
+        <h2 className="text-sm font-semibold">검색어와 페이지</h2>
         <EmptyState
-          title="No query or page data yet"
-          description="Top queries and pages from Search Console appear here after the next GSC sync."
+          title="검색어·페이지 자료가 없습니다"
+          description="다음 GSC 수집 후 Search Console의 주요 검색어와 페이지를 표시합니다."
         />
       </section>
     );
@@ -48,16 +48,16 @@ export function SearchTermsSection({
   return (
     <div className="grid gap-3 lg:grid-cols-2">
       <TermsTable
-        title="Top search terms"
-        keyHeader="Query"
+        title="주요 검색어"
+        keyHeader="검색어"
         rows={data.queries.slice(0, TOP_N)}
         tableKey={`${siteId}:${days}:queries`}
         trackedSet={trackedSet}
         onToggleTrack={(query, track) => trackMutation.mutate({ query, track })}
       />
       <TermsTable
-        title="Top pages"
-        keyHeader="Page"
+        title="주요 페이지"
+        keyHeader="페이지"
         rows={data.pages.slice(0, TOP_N)}
         tableKey={`${siteId}:${days}:pages`}
         isPage
@@ -78,19 +78,19 @@ function shortPath(url: string): string {
 function flag(row: TermRow): { label: string; tone: string } | null {
   if (row.clicksPct != null && row.clicksPct >= 50 && row.clicks >= 5) {
     return {
-      label: "Rising",
+      label: "상승 중",
       tone: "border-success/30 bg-success/10 text-success",
     };
   }
   if (row.position != null && row.position > 10 && row.position <= 20) {
     return {
-      label: "Page 2",
+      label: "검색 결과 2페이지",
       tone: "border-warning/30 bg-warning/10 text-warning",
     };
   }
   if (row.impressions >= 100 && row.ctr != null && row.ctr < 0.02) {
     return {
-      label: "Low CTR",
+      label: "낮은 클릭률",
       tone: "border-primary/30 bg-primary/10 text-primary",
     };
   }
@@ -124,10 +124,10 @@ function TermsTable({
             <thead>
               <tr className="border-b border-border text-left text-xs text-muted-foreground">
                 <th className="px-3 py-2 font-medium">{keyHeader}</th>
-                <th className="px-2 py-2 text-right font-medium">Clicks</th>
-                <th className="px-2 py-2 text-right font-medium">Impr.</th>
-                <th className="px-2 py-2 text-right font-medium">CTR</th>
-                <th className="px-2 py-2 text-right font-medium">Pos.</th>
+                <th className="px-2 py-2 text-right font-medium">클릭 수</th>
+                <th className="px-2 py-2 text-right font-medium">노출 수</th>
+                <th className="px-2 py-2 text-right font-medium">클릭률</th>
+                <th className="px-2 py-2 text-right font-medium">평균 순위</th>
               </tr>
             </thead>
             <tbody>
@@ -145,8 +145,8 @@ function TermsTable({
                             type="button"
                             aria-label={
                               trackedSet.has(row.key)
-                                ? "Stop tracking this query"
-                                : "Track this query's position"
+                                ? "이 검색어 추적 중지"
+                                : "이 검색어 순위 추적"
                             }
                             aria-pressed={trackedSet.has(row.key)}
                             className={cn(

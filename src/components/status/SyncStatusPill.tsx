@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import type { SyncStatus } from "@/types/database";
 import { cn } from "@/lib/utils";
+import { SYNC_STATUS_LABELS } from "./sync-labels";
 
 const STYLES: Record<
   SyncStatus,
@@ -41,7 +42,7 @@ export function SyncStatusPill({ status }: { status: SyncStatus }) {
       )}
     >
       <Icon className={cn("h-3 w-3", spin && "animate-spin")} aria-hidden />
-      {status}
+      {SYNC_STATUS_LABELS[status]}
     </span>
   );
 }

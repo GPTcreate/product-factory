@@ -2,6 +2,7 @@ import type { SyncRunRow } from "@/lib/api";
 import { SOURCE_SHORT } from "@/lib/sources";
 import { absoluteTime, relativeTime } from "@/lib/dates";
 import { formatDuration, formatNumber } from "@/lib/format";
+import { SYNC_TRIGGER_LABELS } from "@/components/status/sync-labels";
 import { SyncStatusPill } from "@/components/status/SyncStatusPill";
 import { Card } from "@/components/ui/card";
 import { usePrivacyMode } from "@/lib/privacy";
@@ -22,16 +23,14 @@ export function SyncRunsTable({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-left text-xs text-muted-foreground">
-              <th className="px-4 py-2.5 font-medium">Started</th>
-              {!hideSite && (
-                <th className="px-4 py-2.5 font-medium">Website</th>
-              )}
-              <th className="px-3 py-2.5 font-medium">Source</th>
-              <th className="px-3 py-2.5 font-medium">Trigger</th>
-              <th className="px-3 py-2.5 font-medium">Status</th>
-              <th className="px-3 py-2.5 text-right font-medium">Duration</th>
-              <th className="px-3 py-2.5 text-right font-medium">Rows</th>
-              <th className="px-4 py-2.5 font-medium">Error</th>
+              <th className="px-4 py-2.5 font-medium">시작 시각</th>
+              {!hideSite && <th className="px-4 py-2.5 font-medium">제품</th>}
+              <th className="px-3 py-2.5 font-medium">수집 소스</th>
+              <th className="px-3 py-2.5 font-medium">실행 방식</th>
+              <th className="px-3 py-2.5 font-medium">상태</th>
+              <th className="px-3 py-2.5 text-right font-medium">소요 시간</th>
+              <th className="px-3 py-2.5 text-right font-medium">저장 행 수</th>
+              <th className="px-4 py-2.5 font-medium">오류</th>
             </tr>
           </thead>
           <tbody>
@@ -70,7 +69,7 @@ export function SyncRunsTable({
                 )}
                 <td className="px-3 py-2.5">{SOURCE_SHORT[run.source]}</td>
                 <td className="px-3 py-2.5 capitalize text-muted-foreground">
-                  {run.trigger_type}
+                  {SYNC_TRIGGER_LABELS[run.trigger_type]}
                 </td>
                 <td className="px-3 py-2.5">
                   <SyncStatusPill status={run.status} />

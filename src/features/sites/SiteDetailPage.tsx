@@ -46,15 +46,16 @@ import { UptimeCard } from "@/features/sites/UptimeCard";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { usePrivacyMode } from "@/lib/privacy";
+import { MARKET_LABELS } from "./site-labels";
 
 const RANGES = [7, 30, 90, 180, 360] as const;
 
 const GA4_METRICS: { key: AnalyticsMetricKey; label: string }[] = [
-  { key: "active_users", label: "Active users" },
-  { key: "total_users", label: "Total users" },
-  { key: "sessions", label: "Sessions" },
-  { key: "screen_page_views", label: "Page views" },
-  { key: "engaged_sessions", label: "Engaged sessions" },
+  { key: "active_users", label: "활성 사용자" },
+  { key: "total_users", label: "전체 사용자" },
+  { key: "sessions", label: "세션 수" },
+  { key: "screen_page_views", label: "페이지 조회 수" },
+  { key: "engaged_sessions", label: "참여 세션 수" },
 ];
 
 /** Merge Google + Bing daily rows into one date-keyed series for the charts. */
@@ -100,11 +101,11 @@ export function SiteDetailPage() {
   if (!siteQuery.data)
     return (
       <EmptyState
-        title="Product not found"
-        description="This website may have been removed."
+        title="제품을 찾을 수 없습니다"
+        description="제품이 삭제되었을 수 있습니다."
         action={
           <Link to="/sites" className="text-sm text-primary hover:underline">
-            Back to products
+            제품 목록으로 돌아가기
           </Link>
         }
       />
@@ -187,7 +188,7 @@ export function SiteDetailPage() {
                           : absoluteTime(status.last_success_at)
                       }
                     >
-                      Last success{" "}
+                      최근 성공{" "}
                       {privacy.enabled
                         ? "********"
                         : relativeTime(status.last_success_at)}
@@ -201,9 +202,10 @@ export function SiteDetailPage() {
       )}
 
       <p className="text-sm text-muted-foreground">
-        {site.product_code} · {site.market} · {site.primary_language} · 단계{" "}
-        {site.level ?? 1} · v{site.version ?? "1.0"} ·{" "}
-        {PRODUCT_STATUS_LABELS[site.status ?? "LIVE"]}
+        {site.product_code} ·{" "}
+        {MARKET_LABELS[site.market ?? ""] ?? site.market ?? "미지정"} ·{" "}
+        {site.primary_language} · 단계 {site.level ?? 1} · v
+        {site.version ?? "1.0"} · {PRODUCT_STATUS_LABELS[site.status ?? "LIVE"]}
       </p>
       <nav
         aria-label="제품 상세 탭"
@@ -289,7 +291,7 @@ export function SiteDetailPage() {
       {/* Recent runs */}
       {!operationalTab && (
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold">Recent sync runs</h2>
+          <h2 className="text-sm font-semibold">최근 수집 이력</h2>
           {runsQuery.isLoading ? (
             <Skeleton className="h-40" />
           ) : runsQuery.isError ? (
@@ -297,7 +299,7 @@ export function SiteDetailPage() {
           ) : runsQuery.data && runsQuery.data.length > 0 ? (
             <SyncRunsTable runs={runsQuery.data} hideSite />
           ) : (
-            <EmptyState title="No sync runs yet" />
+            <EmptyState title="수집 이력이 없습니다" />
           )}
         </section>
       )}
@@ -379,7 +381,7 @@ function MetricsSection({
       {/* GA4 */}
       <section className="space-y-3">
         <h2 className="text-sm font-semibold">
-          Google Analytics · last {days} days
+          Google Analytics · 최근 {days}일
         </h2>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
           {GA4_METRICS.map(({ key, label }) => {
@@ -394,7 +396,7 @@ function MetricsSection({
                     ? formatNumber(
                         privacy.maskNumber(cur, `ga-card:${days}:${key}`),
                       )
-                    : "No Data"
+                    : "자료 없음"
                 }
                 hint={<MetricDelta change={percentageChange(cur, prev)} />}
               />
@@ -404,7 +406,7 @@ function MetricsSection({
         <EngagementQuality rows={ga.current} />
         <Card>
           <CardHeader>
-            <CardTitle>Users &amp; sessions</CardTitle>
+            <CardTitle>사용자와 세션</CardTitle>
           </CardHeader>
           <CardContent>
             <MetricLineChart
@@ -412,12 +414,12 @@ function MetricsSection({
               series={[
                 {
                   key: "Active users",
-                  name: "Active users",
+                  name: "활성 사용자",
                   color: CHART_COLORS.primary,
                 },
                 {
                   key: "Sessions",
-                  name: "Sessions",
+                  name: "세션 수",
                   color: CHART_COLORS.violet,
                 },
               ]}
@@ -428,23 +430,23 @@ function MetricsSection({
 
       {/* Search */}
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold">Search · last {days} days</h2>
+        <h2 className="text-sm font-semibold">검색 · 최근 {days}일</h2>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <StatCard
-            label="Google clicks"
+            label="Google 클릭 수"
             value={
               g.current.length
                 ? formatNumber(
                     privacy.maskNumber(gClicks, `search:${days}:google-clicks`),
                   )
-                : "No Data"
+                : "자료 없음"
             }
             hint={
               <MetricDelta change={percentageChange(gClicks, gClicksPrev)} />
             }
           />
           <StatCard
-            label="Google impressions"
+            label="Google 노출 수"
             value={
               g.current.length
                 ? formatNumber(
@@ -453,12 +455,12 @@ function MetricsSection({
                       `search:${days}:google-impressions`,
                     ),
                   )
-                : "No Data"
+                : "자료 없음"
             }
             hint={<MetricDelta change={percentageChange(gImpr, gImprPrev)} />}
           />
           <StatCard
-            label="Google CTR"
+            label="Google 클릭률"
             value={formatCtr(
               privacy.maskNumber(gCtr, `search:${days}:google-ctr`, {
                 min: 0,
@@ -477,7 +479,7 @@ function MetricsSection({
             }
           />
           <StatCard
-            label="Avg. position"
+            label="평균 순위"
             value={formatPosition(
               privacy.maskNumber(gPos, `search:${days}:google-position`, {
                 min: 1,
@@ -486,24 +488,26 @@ function MetricsSection({
               }),
             )}
             hint={
-              <span className="text-muted-foreground">lower is better</span>
+              <span className="text-muted-foreground">
+                숫자가 작을수록 좋음
+              </span>
             }
           />
           <StatCard
-            label="Bing clicks"
+            label="Bing 클릭 수"
             value={
               b.current.length
                 ? formatNumber(
                     privacy.maskNumber(bClicks, `search:${days}:bing-clicks`),
                   )
-                : "No Data"
+                : "자료 없음"
             }
             hint={
               <MetricDelta change={percentageChange(bClicks, bClicksPrev)} />
             }
           />
           <StatCard
-            label="Bing impressions"
+            label="Bing 노출 수"
             value={
               b.current.length
                 ? formatNumber(
@@ -512,7 +516,7 @@ function MetricsSection({
                       `search:${days}:bing-impressions`,
                     ),
                   )
-                : "No Data"
+                : "자료 없음"
             }
             hint={<MetricDelta change={percentageChange(bImpr, bImprPrev)} />}
           />
@@ -520,7 +524,7 @@ function MetricsSection({
         <div className="grid gap-3 lg:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>Clicks</CardTitle>
+              <CardTitle>클릭 수</CardTitle>
             </CardHeader>
             <CardContent>
               <MetricLineChart
@@ -542,7 +546,7 @@ function MetricsSection({
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle>Impressions</CardTitle>
+              <CardTitle>노출 수</CardTitle>
             </CardHeader>
             <CardContent>
               <MetricLineChart
@@ -596,16 +600,18 @@ function EngagementQuality({ rows }: { rows: AnalyticsDaily[] }) {
   return (
     <div className="grid grid-cols-3 gap-3">
       <StatCard
-        label="Engagement rate"
+        label="참여율"
         value={formatCtr(engagementRate)}
-        hint={<span className="text-muted-foreground">engaged ÷ sessions</span>}
+        hint={
+          <span className="text-muted-foreground">참여 세션 ÷ 전체 세션</span>
+        }
       />
       <StatCard
-        label="Pages / session"
+        label="세션당 페이지 수"
         value={pagesPerSession != null ? pagesPerSession.toFixed(1) : "-"}
       />
       <StatCard
-        label="Sessions / user"
+        label="사용자당 세션 수"
         value={sessionsPerUser != null ? sessionsPerUser.toFixed(1) : "-"}
       />
     </div>
@@ -632,7 +638,7 @@ function RangeSelector({
               : "text-muted-foreground hover:text-foreground",
           )}
         >
-          {r}d
+          {r}일
         </button>
       ))}
     </div>

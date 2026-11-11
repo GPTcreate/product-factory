@@ -12,7 +12,7 @@ export function CoveragePanel({ coverage }: { coverage: CoverageRow[] }) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Data coverage</CardTitle>
+        <CardTitle>자료 수집 범위</CardTitle>
         <span className="text-xs text-muted-foreground">
           {privacy.enabled
             ? `${privacy.maskNumber(current, "coverage:current")}/${privacy.maskNumber(
@@ -20,14 +20,14 @@ export function CoveragePanel({ coverage }: { coverage: CoverageRow[] }) {
                 "coverage:total",
               )}`
             : `${current}/${coverage.length}`}{" "}
-          feeds current
+          개 연결에 최근 자료 있음
         </span>
       </CardHeader>
       <CardContent>
         {gaps.length === 0 ? (
           <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground">
             <CheckCircle2 className="h-4 w-4 text-success" />
-            Every enabled feed has recent data.
+            활성화된 모든 연결에 최근 자료가 있습니다.
           </div>
         ) : (
           <ul className="space-y-2">
@@ -46,10 +46,10 @@ export function CoveragePanel({ coverage }: { coverage: CoverageRow[] }) {
                   </span>
                   <p className="text-xs text-muted-foreground">
                     {privacy.enabled
-                      ? "Last data ********"
+                      ? "마지막 자료 ********"
                       : c.lastDataDate
-                        ? `Last data ${c.lastDataDate} (${c.staleDays}d ago)`
-                        : "No data on record"}
+                        ? `마지막 자료 ${c.lastDataDate} (${c.staleDays}일 전)`
+                        : "저장된 자료 없음"}
                   </p>
                 </div>
               </li>

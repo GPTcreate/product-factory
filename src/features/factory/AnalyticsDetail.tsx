@@ -3,6 +3,23 @@ import { metricState } from "./model";
 import { usePrivacyMode } from "@/lib/privacy";
 import { ErrorState } from "@/components/ui/error-state";
 import type { SiteWithStatuses } from "@/lib/api";
+const EVENT_LABELS: Record<string, string> = {
+  core_action: "핵심 행동",
+  result_view: "결과 조회",
+  share: "공유",
+  outbound_click: "외부 링크 클릭",
+  signup: "회원가입",
+  premium_view: "유료 기능 조회",
+  checkout_start: "결제 시작",
+  purchase: "구매",
+};
+const DEVICE_LABELS: Record<string, string> = {
+  desktop: "컴퓨터",
+  mobile: "휴대전화",
+  tablet: "태블릿",
+  other: "기타",
+  unknown: "알 수 없음",
+};
 export function AnalyticsDetail({
   site,
   days,
@@ -14,26 +31,26 @@ export function AnalyticsDetail({
 }) {
   const query = useAnalyticsDetail(site.id, days),
     privacy = usePrivacyMode();
-  if (query.isLoading) return <p>Loading details…</p>;
+  if (query.isLoading) return <p>상세 자료를 불러오는 중…</p>;
   if (query.isError) return <ErrorState onRetry={() => void query.refetch()} />;
   const data = query.data!;
   const display = (text: string) => (privacy.enabled ? "********" : text);
   if (section === "traffic")
     return (
       <section className="factory-panel">
-        <h2 className="font-semibold">Audience & engagement</h2>
+        <h2 className="font-semibold">방문자·참여 현황</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-3">
           {[
             [
-              "New users (daily sum)",
+              "신규 사용자 수 (일별 합계)",
               data.audience.reduce((s, r) => s + r.new_users, 0),
             ],
             [
-              "Returning users (daily sum)",
+              "재방문 사용자 수 (일별 합계)",
               data.audience.reduce((s, r) => s + r.returning_users, 0),
             ],
             [
-              "Engagement seconds",
+              "참여 시간 (초)",
               data.audience.reduce(
                 (s, r) => s + Number(r.engagement_seconds),
                 0,
@@ -55,9 +72,9 @@ export function AnalyticsDetail({
           ))}
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
-          Daily users are summed across dates, not deduplicated period users.
-          Returning users use GA4 newVsReturning = returning; they are not
-          calculated by subtraction.
+          일별 사용자 수의 합계이며, 기간 전체의 중복을 제거한 사용자 수가
+          아닙니다. 재방문자는 GA4의 newVsReturning = returning 값을 사용하며
+          뺄셈으로 추정하지 않습니다.
         </p>
       </section>
     );
@@ -81,21 +98,32 @@ export function AnalyticsDetail({
     ];
     return (
       <section className="factory-panel">
-        <h2 className="font-semibold">Events · {days} days</h2>
+        <h2 className="font-semibold">이벤트 · 최근 {days}일</h2>
         <p className="my-2 text-sm text-muted-foreground">
-          Common events and product-specific events received from GA4.
+          GA4에서 수신한 공통 이벤트와 제품별 이벤트입니다.
         </p>
         <table className="factory-table">
           <thead>
             <tr>
-              <th>Event</th>
-              <th>Count</th>
+              <th>이벤트</th>
+              <th>횟수</th>
             </tr>
           </thead>
           <tbody>
             {names.map((name) => (
               <tr key={name}>
-                <td>{name}</td>
+                <td>
+                  {EVENT_LABELS[name] ? (
+                    <>
+                      {EVENT_LABELS[name]}{" "}
+                      <code className="text-xs text-muted-foreground">
+                        ({name})
+                      </code>
+                    </>
+                  ) : (
+                    name
+                  )}
+                </td>
                 <td>
                   {display(
                     metricState(
@@ -134,18 +162,20 @@ export function AnalyticsDetail({
           });
         return (
           <section key={d} className="factory-panel overflow-x-auto">
-            <h2 className="mb-3 font-semibold">Google Search · {d}</h2>
+            <h2 className="mb-3 font-semibold">
+              Google 검색 · {d === "country" ? "국가" : "기기"}
+            </h2>
             {!grouped.size ? (
-              <p>{site.gsc_property ? "No Data" : "Not Connected"}</p>
+              <p>{site.gsc_property ? "자료 없음" : "연결 안 됨"}</p>
             ) : (
               <table className="factory-table">
                 <thead>
                   <tr>
-                    <th>{d}</th>
-                    <th>Clicks</th>
-                    <th>Impressions</th>
-                    <th>CTR</th>
-                    <th>Position</th>
+                    <th>{d === "country" ? "국가" : "기기"}</th>
+                    <th>클릭 수</th>
+                    <th>노출 수</th>
+                    <th>클릭률</th>
+                    <th>평균 순위</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -154,7 +184,11 @@ export function AnalyticsDetail({
                     .slice(0, 50)
                     .map(([value, r]) => (
                       <tr key={value}>
-                        <td>{value}</td>
+                        <td>
+                          {d === "device"
+                            ? (DEVICE_LABELS[value.toLowerCase()] ?? value)
+                            : value}
+                        </td>
                         <td>{display(String(r.clicks))}</td>
                         <td>{display(String(r.impressions))}</td>
                         <td>

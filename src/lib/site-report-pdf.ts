@@ -17,6 +17,11 @@ import {
 } from "@/lib/metrics";
 import { SOURCE_LABEL, SOURCE_SHORT } from "@/lib/sources";
 import { APP_COMMIT } from "@/lib/build-info";
+import { registerReportFonts } from "./report-font";
+import {
+  SYNC_STATUS_LABELS,
+  SYNC_TRIGGER_LABELS,
+} from "@/components/status/sync-labels";
 import type { AnalyticsDaily, SearchDaily } from "@/types/database";
 import type { TermRow } from "@/lib/search-terms";
 
@@ -124,7 +129,7 @@ function setText(doc: jsPDF, color: Rgb) {
 
 function fmtNumber(value: number | null | undefined): string {
   if (value == null) return "-";
-  return Math.round(value).toLocaleString("en-US");
+  return Math.round(value).toLocaleString("ko-KR");
 }
 
 function fmtDecimal(value: number | null | undefined, digits = 1): string {
@@ -138,9 +143,9 @@ function fmtRatio(value: number | null | undefined): string {
 }
 
 function fmtDelta(value: number | null | undefined): string {
-  if (value == null || Number.isNaN(value)) return "vs prev: n/a";
+  if (value == null || Number.isNaN(value)) return "이전 기간 비교 불가";
   const sign = value > 0 ? "+" : "";
-  return `${sign}${value.toFixed(1)}% vs prev`;
+  return `${sign}${value.toFixed(1)}% (이전 기간 대비)`;
 }
 
 function fmtDate(value: string | null | undefined): string {
@@ -149,9 +154,9 @@ function fmtDate(value: string | null | undefined): string {
 }
 
 function dateSpan(rows: Array<{ metric_date: string }>): string {
-  if (rows.length === 0) return "no rows";
+  if (rows.length === 0) return "자료 없음";
   const dates = [...new Set(rows.map((row) => row.metric_date))].sort();
-  return `${dates[0]} to ${dates[dates.length - 1]}`;
+  return `${dates[0]} ~ ${dates[dates.length - 1]}`;
 }
 
 function distinctDateCount(rows: Array<{ metric_date: string }>): number {
@@ -201,11 +206,11 @@ function ensureSpace(state: PdfState, needed: number) {
 
 function drawPageHeader(state: PdfState) {
   const { doc } = state;
-  doc.setFont("helvetica", "bold");
+  doc.setFont("FactoryKorean", "bold");
   doc.setFontSize(8);
   setText(doc, COLORS.muted);
   doc.text(state.siteName, MARGIN, MARGIN - 4);
-  doc.setFont("helvetica", "normal");
+  doc.setFont("FactoryKorean", "normal");
   doc.text(
     format(state.generatedAt, "yyyy-MM-dd HH:mm"),
     state.width - MARGIN,
@@ -237,13 +242,13 @@ function drawSectionTitle(state: PdfState, title: string, eyebrow?: string) {
   ensureSpace(state, eyebrow ? 58 : 42);
   const { doc } = state;
   if (eyebrow) {
-    doc.setFont("helvetica", "bold");
+    doc.setFont("FactoryKorean", "bold");
     doc.setFontSize(8);
     setText(doc, COLORS.sky);
     doc.text(eyebrow.toUpperCase(), MARGIN, state.y);
     state.y += 18;
   }
-  doc.setFont("helvetica", "bold");
+  doc.setFont("FactoryKorean", "bold");
   doc.setFontSize(17);
   setText(doc, COLORS.ink);
   doc.text(title, MARGIN, state.y);
@@ -326,22 +331,22 @@ function drawCover(state: PdfState, input: SitePerformanceReportInput) {
   setFill(doc, COLORS.amber);
   doc.rect(state.width * 0.73, 205, state.width * 0.27, 15, "F");
 
-  doc.setFont("helvetica", "bold");
+  doc.setFont("FactoryKorean", "bold");
   doc.setFontSize(10);
   setText(doc, COLORS.sky);
-  doc.text("SITE ANALYTICS", MARGIN, 54);
+  doc.text("사이트 분석", MARGIN, 54);
 
   doc.setFontSize(27);
   setText(doc, COLORS.white);
-  doc.text("Site Performance", MARGIN, 92);
-  doc.text("Intelligence Report", MARGIN, 124);
+  doc.text("사이트 성과", MARGIN, 92);
+  doc.text("분석 보고서", MARGIN, 124);
 
-  doc.setFont("helvetica", "normal");
+  doc.setFont("FactoryKorean", "normal");
   doc.setFontSize(11);
   setText(doc, [226, 232, 240]);
   drawWrappedText(
     state,
-    "A single PDF built for Claude Code or any other analysis agent. It combines GA4, Search Console, Bing, top query/page signals, sync health, and data coverage notes.",
+    "GA4·Search Console·Bing의 성과와 주요 검색어·페이지, 수집 상태, 관측 범위를 한 보고서로 정리했습니다. 직접 검토하거나 분석 도구에 참고 자료로 활용할 수 있습니다.",
     MARGIN,
     150,
     state.width - MARGIN * 2 - 60,
@@ -353,26 +358,26 @@ function drawCover(state: PdfState, input: SitePerformanceReportInput) {
   setFill(doc, COLORS.faint);
   setDraw(doc, COLORS.border);
   doc.roundedRect(MARGIN, cardY, cardW, 116, 8, 8, "FD");
-  doc.setFont("helvetica", "bold");
+  doc.setFont("FactoryKorean", "bold");
   doc.setFontSize(18);
   setText(doc, COLORS.ink);
   doc.text(input.site.name, MARGIN + 22, cardY + 34);
-  doc.setFont("helvetica", "normal");
+  doc.setFont("FactoryKorean", "normal");
   doc.setFontSize(10);
   setText(doc, COLORS.muted);
   doc.text(input.site.domain, MARGIN + 22, cardY + 55);
   doc.text(input.site.website_url, MARGIN + 22, cardY + 72);
   doc.text(
-    `Generated ${format(state.generatedAt, "yyyy-MM-dd HH:mm")}`,
+    `생성 ${format(state.generatedAt, "yyyy-MM-dd HH:mm")}`,
     MARGIN + 22,
     cardY + 92,
   );
 
-  const ranges = input.ranges.map((range) => `${range.days}d`).join(" / ");
-  doc.setFont("helvetica", "bold");
+  const ranges = input.ranges.map((range) => `${range.days}일`).join(" / ");
+  doc.setFont("FactoryKorean", "bold");
   doc.setFontSize(10);
   setText(doc, COLORS.sky);
-  doc.text("REPORT WINDOWS", state.width - MARGIN - 22, cardY + 35, {
+  doc.text("분석 기간", state.width - MARGIN - 22, cardY + 35, {
     align: "right",
   });
   doc.setFontSize(20);
@@ -382,26 +387,26 @@ function drawCover(state: PdfState, input: SitePerformanceReportInput) {
   });
 
   const briefY = 420;
-  drawSectionTitleAt(state, "Agent Analysis Brief", MARGIN, briefY);
-  doc.setFont("helvetica", "normal");
+  drawSectionTitleAt(state, "성과 검토 안내", MARGIN, briefY);
+  doc.setFont("FactoryKorean", "normal");
   doc.setFontSize(10);
   setText(doc, COLORS.ink);
   const prompt =
-    "Use this report to evaluate whether the page is winning over the last 90 days, then compare against 180 and 360 day context where data is available. Focus on traffic quality, search demand, CTR, page 2 opportunities, query/page winners, falling segments, data freshness, and concrete next actions.";
+    "최근 90일의 성과를 먼저 평가한 뒤, 자료가 있는 180일·360일 구간과 비교하세요. 방문 품질·검색 수요·클릭률·검색 2페이지 개선 기회·상승 및 하락 항목·자료 최신성을 살펴보고 다음 행동을 정리하세요.";
   drawWrappedText(state, prompt, MARGIN, briefY + 30, cardW, 10);
 
   const chips = [
-    { label: "Growth", color: COLORS.sky },
-    { label: "Engagement", color: COLORS.emerald },
-    { label: "Search demand", color: COLORS.amber },
-    { label: "Risk", color: COLORS.rose },
+    { label: "성장", color: COLORS.sky },
+    { label: "참여", color: COLORS.emerald },
+    { label: "검색 수요", color: COLORS.amber },
+    { label: "위험", color: COLORS.rose },
   ];
   let chipX = MARGIN;
   for (const chip of chips) {
     const width = doc.getTextWidth(chip.label) + 22;
     setFill(doc, chip.color);
     doc.roundedRect(chipX, briefY + 78, width, 22, 11, 11, "F");
-    doc.setFont("helvetica", "bold");
+    doc.setFont("FactoryKorean", "bold");
     doc.setFontSize(8);
     setText(doc, COLORS.white);
     doc.text(chip.label, chipX + 11, briefY + 93);
@@ -410,11 +415,11 @@ function drawCover(state: PdfState, input: SitePerformanceReportInput) {
 
   state.y = state.height - 110;
   setText(doc, COLORS.muted);
-  doc.setFont("helvetica", "normal");
+  doc.setFont("FactoryKorean", "normal");
   doc.setFontSize(9);
   drawWrappedText(
     state,
-    "Important: daily KPI rows are retained for 540 days. Query and page breakdown rows are retained for 210 days, so long-window term/page sections can be partial and are labeled with coverage.",
+    "일별 지표는 540일, 검색어·페이지 상세 자료는 210일 동안 보관합니다. 긴 기간의 상세 자료는 일부만 포함될 수 있으므로 관측 범위를 함께 확인하세요.",
     MARGIN,
     state.y,
     cardW,
@@ -429,7 +434,7 @@ function drawSectionTitleAt(
   y: number,
 ) {
   const { doc } = state;
-  doc.setFont("helvetica", "bold");
+  doc.setFont("FactoryKorean", "bold");
   doc.setFontSize(15);
   setText(doc, COLORS.ink);
   doc.text(title, x, y);
@@ -465,14 +470,14 @@ function drawKpiGrid(
     setFill(state.doc, item.color);
     state.doc.roundedRect(x, y, 7, height, 4, 4, "F");
 
-    state.doc.setFont("helvetica", "bold");
+    state.doc.setFont("FactoryKorean", "bold");
     state.doc.setFontSize(7.5);
     setText(state.doc, COLORS.muted);
     state.doc.text(item.label.toUpperCase(), x + 16, y + 20);
     state.doc.setFontSize(17);
     setText(state.doc, COLORS.ink);
     state.doc.text(item.value, x + 16, y + 44);
-    state.doc.setFont("helvetica", "normal");
+    state.doc.setFont("FactoryKorean", "normal");
     state.doc.setFontSize(8);
     setText(state.doc, COLORS.muted);
     state.doc.text(
@@ -525,22 +530,22 @@ function drawLineChart<T extends { metric_date: string }>(
   setDraw(state.doc, COLORS.border);
   state.doc.roundedRect(x, y, width, height, 8, 8, "FD");
 
-  state.doc.setFont("helvetica", "bold");
+  state.doc.setFont("FactoryKorean", "bold");
   state.doc.setFontSize(11);
   setText(state.doc, COLORS.ink);
   state.doc.text(title, x + 14, y + 22);
 
   if (rows.length === 0) {
-    state.doc.setFont("helvetica", "normal");
+    state.doc.setFont("FactoryKorean", "normal");
     state.doc.setFontSize(9);
     setText(state.doc, COLORS.muted);
-    state.doc.text("No rows available for this chart.", x + 14, y + 58);
+    state.doc.text("표시할 차트 자료가 없습니다.", x + 14, y + 58);
     state.y += height + 14;
     return;
   }
 
   let legendX = x + width - 14;
-  state.doc.setFont("helvetica", "normal");
+  state.doc.setFont("FactoryKorean", "normal");
   state.doc.setFontSize(8);
   for (const item of [...series].reverse()) {
     const labelWidth = state.doc.getTextWidth(item.label) + 18;
@@ -567,7 +572,7 @@ function drawLineChart<T extends { metric_date: string }>(
     state.doc.line(plotX, gridY, plotX + plotW, gridY);
   }
 
-  state.doc.setFont("helvetica", "normal");
+  state.doc.setFont("FactoryKorean", "normal");
   state.doc.setFontSize(7);
   setText(state.doc, COLORS.muted);
   state.doc.text(fmtNumber(maxValue), plotX - 6, plotY + 3, { align: "right" });
@@ -612,25 +617,25 @@ function drawCoverageNotes(
   setDraw(doc, COLORS.border);
   doc.roundedRect(x, y, width, 86, 8, 8, "FD");
 
-  doc.setFont("helvetica", "bold");
+  doc.setFont("FactoryKorean", "bold");
   doc.setFontSize(9);
   setText(doc, COLORS.ink);
-  doc.text("Data coverage", x + 12, y + 19);
-  doc.setFont("helvetica", "normal");
+  doc.text("관측 범위", x + 12, y + 19);
+  doc.setFont("FactoryKorean", "normal");
   doc.setFontSize(8.2);
   setText(doc, COLORS.muted);
   const lines = [
-    `GA4 current: ${distinctDateCount(summary.analytics.current)}/${payload.days} days (${dateSpan(summary.analytics.current)}); previous: ${distinctDateCount(summary.analytics.previous)}/${payload.days} days.`,
-    `Google search current: ${distinctDateCount(summary.google.current)}/${payload.days} days; Bing current: ${distinctDateCount(summary.bing.current)}/${payload.days} days.`,
-    `Query rows: ${payload.terms.coverage.queries.rows} rows, ${payload.terms.coverage.queries.daysWithRows} days (${fmtDate(payload.terms.coverage.queries.firstDate)} to ${fmtDate(payload.terms.coverage.queries.lastDate)}). Page rows: ${payload.terms.coverage.pages.rows} rows, ${payload.terms.coverage.pages.daysWithRows} days.`,
+    `GA4 현재: ${distinctDateCount(summary.analytics.current)}/${payload.days}일 (${dateSpan(summary.analytics.current)}); 이전: ${distinctDateCount(summary.analytics.previous)}/${payload.days}일.`,
+    `Google 검색 현재: ${distinctDateCount(summary.google.current)}/${payload.days}일; Bing 현재: ${distinctDateCount(summary.bing.current)}/${payload.days}일.`,
+    `검색어: ${payload.terms.coverage.queries.rows}건, ${payload.terms.coverage.queries.daysWithRows}일 (${fmtDate(payload.terms.coverage.queries.firstDate)} ~ ${fmtDate(payload.terms.coverage.queries.lastDate)}). 페이지: ${payload.terms.coverage.pages.rows}건, ${payload.terms.coverage.pages.daysWithRows}일.`,
   ];
   if (payload.days > 90) {
     lines.push(
-      "Long-window query/page detail can be partial because query and page breakdown rows are retained for 210 days.",
+      "검색어·페이지 상세 자료의 보관 기간은 210일이므로 긴 기간에서는 일부 자료만 포함될 수 있습니다.",
     );
   }
   if (payload.termsError) {
-    lines.push(`Search-term detail warning: ${payload.termsError}`);
+    lines.push(`검색어 상세 안내: ${payload.termsError}`);
   }
   let textY = y + 36;
   for (const line of lines) {
@@ -654,15 +659,15 @@ function drawTermTable(
   const y = state.y;
   const width = state.width - MARGIN * 2;
   const columns = [
-    { label: options.isPage ? "Page" : "Query", width: 238, align: "left" },
-    { label: "Clicks", width: 55, align: "right" },
-    { label: "Delta", width: 58, align: "right" },
-    { label: "Impr.", width: 58, align: "right" },
+    { label: options.isPage ? "페이지" : "검색어", width: 238, align: "left" },
+    { label: "클릭 수", width: 55, align: "right" },
+    { label: "증감", width: 58, align: "right" },
+    { label: "노출 수", width: 58, align: "right" },
     { label: "CTR", width: 52, align: "right" },
-    { label: "Pos.", width: 38, align: "right" },
+    { label: "순위", width: 38, align: "right" },
   ] as const;
 
-  state.doc.setFont("helvetica", "bold");
+  state.doc.setFont("FactoryKorean", "bold");
   state.doc.setFontSize(11);
   setText(state.doc, COLORS.ink);
   state.doc.text(title, x, y);
@@ -689,10 +694,10 @@ function drawTermTable(
   }
 
   if (visibleRows.length === 0) {
-    state.doc.setFont("helvetica", "normal");
+    state.doc.setFont("FactoryKorean", "normal");
     state.doc.setFontSize(8.5);
     setText(state.doc, COLORS.muted);
-    state.doc.text("No rows available.", x + 12, tableY + 44);
+    state.doc.text("표시할 자료가 없습니다.", x + 12, tableY + 44);
     state.y = y + tableHeight + 16;
     return;
   }
@@ -706,13 +711,13 @@ function drawTermTable(
     const values = [
       fitText(state.doc, options.isPage ? shortUrl(row.key) : row.key, 214),
       fmtNumber(row.clicks),
-      fmtDelta(row.clicksPct).replace(" vs prev", ""),
+      fmtDelta(row.clicksPct).replace(" (이전 기간 대비)", ""),
       fmtNumber(row.impressions),
       fmtRatio(row.ctr),
       fmtDecimal(row.position, 1),
     ];
     colX = x + 12;
-    state.doc.setFont("helvetica", "normal");
+    state.doc.setFont("FactoryKorean", "normal");
     state.doc.setFontSize(8);
     setText(state.doc, COLORS.ink);
     columns.forEach((col, colIndex) => {
@@ -740,13 +745,13 @@ function drawRangeSection(state: PdfState, payload: SiteReportRangePayload) {
   const summary = summarizeRange(payload);
   drawSectionTitle(
     state,
-    `Last ${payload.days} Days`,
-    payload.days === 90 ? "Primary success window" : "Context window",
+    `최근 ${payload.days}일`,
+    payload.days === 90 ? "주요 평가 기간" : "장기 비교 기간",
   );
   drawCoverageNotes(state, payload, summary);
   drawKpiGrid(state, [
     {
-      label: "Active users",
+      label: "활성 사용자",
       value: fmtNumber(summary.activeUsers),
       delta: fmtDelta(
         completePeriodChange(
@@ -759,7 +764,7 @@ function drawRangeSection(state: PdfState, payload: SiteReportRangePayload) {
       color: COLORS.sky,
     },
     {
-      label: "Sessions",
+      label: "세션 수",
       value: fmtNumber(summary.sessions),
       delta: fmtDelta(
         completePeriodChange(
@@ -772,7 +777,7 @@ function drawRangeSection(state: PdfState, payload: SiteReportRangePayload) {
       color: COLORS.violet,
     },
     {
-      label: "Page views",
+      label: "페이지 조회 수",
       value: fmtNumber(summary.pageViews),
       delta: fmtDelta(
         completePeriodChange(
@@ -785,7 +790,7 @@ function drawRangeSection(state: PdfState, payload: SiteReportRangePayload) {
       color: COLORS.emerald,
     },
     {
-      label: "Engagement rate",
+      label: "참여율",
       value: fmtRatio(summary.engagementRate),
       delta: fmtDelta(
         summary.engagementRate != null &&
@@ -797,7 +802,7 @@ function drawRangeSection(state: PdfState, payload: SiteReportRangePayload) {
       color: COLORS.amber,
     },
     {
-      label: "Google clicks",
+      label: "Google 클릭 수",
       value: fmtNumber(summary.googleClicks),
       delta: fmtDelta(
         completePeriodChange(
@@ -810,7 +815,7 @@ function drawRangeSection(state: PdfState, payload: SiteReportRangePayload) {
       color: COLORS.emerald,
     },
     {
-      label: "Google CTR",
+      label: "Google 클릭률",
       value: fmtRatio(summary.googleCtr),
       delta: fmtDelta(
         summary.googleCtr != null &&
@@ -822,7 +827,7 @@ function drawRangeSection(state: PdfState, payload: SiteReportRangePayload) {
       color: COLORS.rose,
     },
     {
-      label: "Google impressions",
+      label: "Google 노출 수",
       value: fmtNumber(summary.googleImpressions),
       delta: fmtDelta(
         completePeriodChange(
@@ -835,13 +840,13 @@ function drawRangeSection(state: PdfState, payload: SiteReportRangePayload) {
       color: COLORS.sky,
     },
     {
-      label: "Avg. position",
+      label: "평균 순위",
       value: fmtDecimal(summary.googlePosition, 1),
-      note: "Lower is better",
+      note: "낮을수록 상위 순위",
       color: COLORS.amber,
     },
     {
-      label: "Bing clicks",
+      label: "Bing 클릭 수",
       value: fmtNumber(summary.bingClicks),
       delta: fmtDelta(
         completePeriodChange(
@@ -855,32 +860,22 @@ function drawRangeSection(state: PdfState, payload: SiteReportRangePayload) {
     },
   ]);
 
-  drawLineChart(
-    state,
-    "GA4 active users and sessions",
-    summary.analytics.current,
-    [
-      {
-        label: "Active users",
-        color: COLORS.sky,
-        value: (row) => row.active_users,
-      },
-      { label: "Sessions", color: COLORS.violet, value: (row) => row.sessions },
-    ],
-  );
-  drawLineChart(
-    state,
-    "Search clicks by engine",
-    buildSearchChartRows(summary),
-    [
-      {
-        label: "Google",
-        color: COLORS.emerald,
-        value: (row) => row.googleClicks,
-      },
-      { label: "Bing", color: COLORS.amber, value: (row) => row.bingClicks },
-    ],
-  );
+  drawLineChart(state, "GA4 활성 사용자와 세션 수", summary.analytics.current, [
+    {
+      label: "활성 사용자",
+      color: COLORS.sky,
+      value: (row) => row.active_users,
+    },
+    { label: "세션 수", color: COLORS.violet, value: (row) => row.sessions },
+  ]);
+  drawLineChart(state, "검색엔진별 클릭 수", buildSearchChartRows(summary), [
+    {
+      label: "Google",
+      color: COLORS.emerald,
+      value: (row) => row.googleClicks,
+    },
+    { label: "Bing", color: COLORS.amber, value: (row) => row.bingClicks },
+  ]);
 }
 
 function drawOpportunitySection(
@@ -889,8 +884,8 @@ function drawOpportunitySection(
 ) {
   drawSectionTitle(
     state,
-    "Search Opportunities",
-    `Top query and page detail - last ${payload.days} days`,
+    "검색 개선 기회",
+    `최근 ${payload.days}일 검색어·페이지 상세`,
   );
   ensureSpace(state, 70);
   const { doc } = state;
@@ -900,12 +895,12 @@ function drawOpportunitySection(
   setFill(doc, COLORS.panel);
   setDraw(doc, COLORS.border);
   doc.roundedRect(x, y, width, 58, 8, 8, "FD");
-  doc.setFont("helvetica", "normal");
+  doc.setFont("FactoryKorean", "normal");
   doc.setFontSize(8.5);
   setText(doc, COLORS.muted);
   drawWrappedText(
     state,
-    `Query rows: ${payload.terms.coverage.queries.rows} rows across ${payload.terms.coverage.queries.daysWithRows} days (${fmtDate(payload.terms.coverage.queries.firstDate)} to ${fmtDate(payload.terms.coverage.queries.lastDate)}). Page rows: ${payload.terms.coverage.pages.rows} rows across ${payload.terms.coverage.pages.daysWithRows} days. These tables are shown once to avoid repeating the same retained breakdown data across long windows.`,
+    `검색어: ${payload.terms.coverage.queries.rows}건 / ${payload.terms.coverage.queries.daysWithRows}일 (${fmtDate(payload.terms.coverage.queries.firstDate)} ~ ${fmtDate(payload.terms.coverage.queries.lastDate)}). 페이지: ${payload.terms.coverage.pages.rows}건 / ${payload.terms.coverage.pages.daysWithRows}일. 같은 상세 자료가 긴 기간마다 반복되지 않도록 이 표는 한 번만 표시합니다.`,
     x + 14,
     y + 20,
     width - 28,
@@ -913,12 +908,12 @@ function drawOpportunitySection(
     11,
   );
   state.y = y + 74;
-  drawTermTable(state, "Top search terms", payload.terms.queries);
-  drawTermTable(state, "Top pages", payload.terms.pages, { isPage: true });
+  drawTermTable(state, "주요 검색어", payload.terms.queries);
+  drawTermTable(state, "주요 페이지", payload.terms.pages, { isPage: true });
 }
 
 function drawHealthSection(state: PdfState, site: SiteWithStatuses) {
-  drawSectionTitle(state, "Integration Health", "Freshness and sync status");
+  drawSectionTitle(state, "연결 상태", "최신성과 수집 상태");
   const now = state.generatedAt;
   const rows = site.statuses.map((status) => {
     const health = computeHealth(status, now);
@@ -954,15 +949,15 @@ function drawHealthSection(state: PdfState, site: SiteWithStatuses) {
   state.doc.rect(x, y + 12, width, 12, "F");
 
   const headers = [
-    { label: "Integration", width: 105, align: "left" },
-    { label: "Health", width: 74, align: "left" },
-    { label: "Last success", width: 102, align: "left" },
-    { label: "Rows", width: 54, align: "right" },
-    { label: "Reason", width: 158, align: "left" },
+    { label: "연동", width: 105, align: "left" },
+    { label: "상태", width: 74, align: "left" },
+    { label: "최근 정상 수집", width: 102, align: "left" },
+    { label: "건수", width: 54, align: "right" },
+    { label: "상세", width: 158, align: "left" },
   ] as const;
 
   let colX = x + 12;
-  state.doc.setFont("helvetica", "bold");
+  state.doc.setFont("FactoryKorean", "bold");
   state.doc.setFontSize(7.5);
   setText(state.doc, COLORS.muted);
   for (const [index, header] of headers.entries()) {
@@ -976,10 +971,10 @@ function drawHealthSection(state: PdfState, site: SiteWithStatuses) {
   }
 
   if (rows.length === 0) {
-    state.doc.setFont("helvetica", "normal");
+    state.doc.setFont("FactoryKorean", "normal");
     state.doc.setFontSize(8.5);
     setText(state.doc, COLORS.muted);
-    state.doc.text("No integration statuses found.", x + 12, y + 45);
+    state.doc.text("연동 상태 자료가 없습니다.", x + 12, y + 45);
     state.y += tableHeight + 16;
     return;
   }
@@ -998,7 +993,7 @@ function drawHealthSection(state: PdfState, site: SiteWithStatuses) {
       fitText(state.doc, row.reason, headers[4].width - 8),
     ];
     colX = x + 12;
-    state.doc.setFont("helvetica", "normal");
+    state.doc.setFont("FactoryKorean", "normal");
     state.doc.setFontSize(8);
     setText(state.doc, COLORS.ink);
     headers.forEach((header, headerIndex) => {
@@ -1017,7 +1012,7 @@ function drawHealthSection(state: PdfState, site: SiteWithStatuses) {
 }
 
 function drawSyncHistory(state: PdfState, runs: SyncRunRow[]) {
-  drawSectionTitle(state, "Recent Sync Runs", "Operational evidence");
+  drawSectionTitle(state, "최근 수집 이력", "운영 확인 기록");
   const rowHeight = 22;
   const visibleRuns = runs.slice(0, 14);
   const tableHeight = 30 + rowHeight * Math.max(visibleRuns.length, 1);
@@ -1033,16 +1028,16 @@ function drawSyncHistory(state: PdfState, runs: SyncRunRow[]) {
   state.doc.rect(x, y + 12, width, 12, "F");
 
   const headers = [
-    { label: "Started", width: 112, align: "left" },
-    { label: "Source", width: 60, align: "left" },
-    { label: "Trigger", width: 70, align: "left" },
-    { label: "Status", width: 70, align: "left" },
-    { label: "Rows", width: 62, align: "right" },
-    { label: "Error", width: 116, align: "left" },
+    { label: "시작 시각", width: 112, align: "left" },
+    { label: "공급자", width: 60, align: "left" },
+    { label: "실행 방식", width: 70, align: "left" },
+    { label: "상태", width: 70, align: "left" },
+    { label: "건수", width: 62, align: "right" },
+    { label: "오류", width: 116, align: "left" },
   ] as const;
 
   let colX = x + 12;
-  state.doc.setFont("helvetica", "bold");
+  state.doc.setFont("FactoryKorean", "bold");
   state.doc.setFontSize(7.5);
   setText(state.doc, COLORS.muted);
   for (const [index, header] of headers.entries()) {
@@ -1056,10 +1051,10 @@ function drawSyncHistory(state: PdfState, runs: SyncRunRow[]) {
   }
 
   if (visibleRuns.length === 0) {
-    state.doc.setFont("helvetica", "normal");
+    state.doc.setFont("FactoryKorean", "normal");
     state.doc.setFontSize(8.5);
     setText(state.doc, COLORS.muted);
-    state.doc.text("No sync runs found for this site.", x + 12, y + 45);
+    state.doc.text("이 제품의 수집 이력이 없습니다.", x + 12, y + 45);
     state.y += tableHeight + 16;
     return;
   }
@@ -1071,13 +1066,13 @@ function drawSyncHistory(state: PdfState, runs: SyncRunRow[]) {
     const values = [
       run.started_at.slice(0, 16).replace("T", " "),
       SOURCE_SHORT[run.source],
-      run.trigger_type,
-      run.status,
+      SYNC_TRIGGER_LABELS[run.trigger_type],
+      SYNC_STATUS_LABELS[run.status],
       fmtNumber(run.rows_written),
       run.error_code ?? "-",
     ];
     colX = x + 12;
-    state.doc.setFont("helvetica", "normal");
+    state.doc.setFont("FactoryKorean", "normal");
     state.doc.setFontSize(8);
     setText(state.doc, COLORS.ink);
     headers.forEach((header, headerIndex) => {
@@ -1101,15 +1096,15 @@ function drawSyncHistory(state: PdfState, runs: SyncRunRow[]) {
 }
 
 function drawAppendix(state: PdfState) {
-  drawSectionTitle(state, "Analysis Checklist", "Suggested agent pass");
+  drawSectionTitle(state, "분석 점검 항목", "검토 순서");
   const checks = [
-    "1. Decide if the last 90 days were successful using sessions, active users, page views, engagement rate, Google clicks, impressions, CTR, and position.",
-    "2. Compare 90 days against 180 and 360 day context to separate durable momentum from recent volatility.",
-    "3. Identify search opportunities: high impressions with low CTR, page 2 rankings, and pages gaining clicks.",
-    "4. Diagnose risk: stale integrations, failed syncs, missing coverage, declining clicks, or engagement quality dropping while traffic rises.",
-    "5. Produce an action plan with prioritized experiments, expected impact, owner, and the exact data point that justified each action.",
+    "1. 세션·활성 사용자·페이지 조회·참여율·Google 클릭·노출·클릭률·순위로 최근 90일의 성과를 평가하세요.",
+    "2. 최근 90일을 180일·360일 구간과 비교해 지속적인 성장과 일시적인 변화를 구분하세요.",
+    "3. 노출은 높고 클릭률은 낮은 항목, 검색 2페이지 순위, 클릭이 늘어난 페이지에서 개선 기회를 찾으세요.",
+    "4. 수집 지연·실패·관측 누락·클릭 하락, 방문 증가와 참여 품질 하락이 함께 나타나는 위험을 확인하세요.",
+    "5. 우선순위·예상 효과·담당자와 각 행동의 근거 지표를 포함해 실행 계획을 정리하세요.",
   ];
-  state.doc.setFont("helvetica", "normal");
+  state.doc.setFont("FactoryKorean", "normal");
   state.doc.setFontSize(9);
   const x = MARGIN;
   const width = state.width - MARGIN * 2;
@@ -1137,16 +1132,16 @@ function addFooters(state: PdfState) {
   const pages = state.doc.getNumberOfPages();
   for (let page = 1; page <= pages; page += 1) {
     state.doc.setPage(page);
-    state.doc.setFont("helvetica", "normal");
+    state.doc.setFont("FactoryKorean", "normal");
     state.doc.setFontSize(8);
     setText(state.doc, COLORS.muted);
     state.doc.text(
-      `Site Analytics commit ${APP_COMMIT} - ${state.siteName}`,
+      `Product Factory 버전 ${APP_COMMIT} - ${state.siteName}`,
       MARGIN,
       state.height - 22,
     );
     state.doc.text(
-      `Page ${page} of ${pages}`,
+      `${page} / ${pages}쪽`,
       state.width - MARGIN,
       state.height - 22,
       {
@@ -1157,40 +1152,45 @@ function addFooters(state: PdfState) {
 }
 
 function drawTrajectorySection(state: PdfState, trajectory: ReportTrajectory) {
-  drawSectionTitle(state, "Trajectory", "Forward view");
+  drawSectionTitle(state, "추이 예측", "향후 전망");
 
   drawKpiGrid(state, [
     {
-      label: `Projected ${trajectory.metricName} (${trajectory.horizonDays}d)`,
+      label: `예상 ${trajectory.metricName} (${trajectory.horizonDays}일)`,
       value: fmtNumber(Math.round(trajectory.horizonTotal)),
       color: COLORS.sky,
       note:
         trajectory.method === "holt-winters"
-          ? "Weekly-seasonal forecast"
-          : "Linear trend (short history)",
+          ? "주간 계절성 예측"
+          : "선형 추세 (짧은 관측 기간)",
     },
     {
-      label: "Trend per week",
+      label: "주간 추세",
       value: `${trajectory.trendPerWeek >= 0 ? "+" : ""}${fmtNumber(
         Math.round(trajectory.trendPerWeek),
       )}`,
       color: trajectory.trendPerWeek >= 0 ? COLORS.emerald : COLORS.rose,
-      note: "Fitted daily trend × 7",
+      note: "일별 추세 추정값 × 7",
     },
     {
-      label: "Model",
-      value: trajectory.method === "holt-winters" ? "Holt-Winters" : "Linear",
+      label: "예측 모형",
+      value: trajectory.method === "holt-winters" ? "Holt-Winters" : "선형",
       color: COLORS.violet,
-      note: "Computed locally from stored daily data",
+      note: "저장된 일별 자료로 계산",
     },
   ]);
 }
 
-export function createSitePerformanceReportPdf(
+export async function createSitePerformanceReportPdf(
   input: SitePerformanceReportInput,
 ) {
   const generatedAt = input.generatedAt ?? new Date();
-  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const doc = new jsPDF({ unit: "pt", format: "a4", putOnlyUsedFonts: true });
+  await registerReportFonts(doc);
+  doc.setProperties({
+    title: `${input.site.name} 성과 보고서`,
+    creator: "Product Factory",
+  });
   const state: PdfState = {
     doc,
     width: doc.internal.pageSize.getWidth(),
@@ -1224,10 +1224,12 @@ export function createSitePerformanceReportPdf(
   return doc;
 }
 
-export function saveSitePerformanceReport(input: SitePerformanceReportInput) {
+export async function saveSitePerformanceReport(
+  input: SitePerformanceReportInput,
+) {
   const generatedAt = input.generatedAt ?? new Date();
-  const doc = createSitePerformanceReportPdf({ ...input, generatedAt });
+  const doc = await createSitePerformanceReportPdf({ ...input, generatedAt });
   const datePart = format(generatedAt, "yyyy-MM-dd");
   const namePart = sanitizeFilename(input.site.domain || input.site.name);
-  doc.save(`${namePart || "site"}-performance-report-${datePart}.pdf`);
+  doc.save(`${namePart || "site"}-성과보고서-${datePart}.pdf`);
 }

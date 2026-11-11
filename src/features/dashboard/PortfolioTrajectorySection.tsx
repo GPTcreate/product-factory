@@ -28,7 +28,7 @@ export function PortfolioTrajectorySection({
 
   return (
     <TrajectoryPanel
-      title={`Portfolio trajectory · next ${HORIZON_DAYS} days`}
+      title={`전체 제품 예상 추이 · 향후 ${HORIZON_DAYS}일`}
       trajectories={trajectories}
       horizonDays={HORIZON_DAYS}
       maskPrefix="traj:portfolio"

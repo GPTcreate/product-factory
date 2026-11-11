@@ -3,6 +3,7 @@ import { useUptimeSummaries } from "@/lib/hooks";
 import { formatDuration } from "@/lib/format";
 import { relativeTime } from "@/lib/dates";
 import { usePrivacyMode } from "@/lib/privacy";
+import { readableError } from "@/lib/ui-errors";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -26,7 +27,7 @@ export function UptimeCard({ siteId }: { siteId: string }) {
         <div className="flex items-center justify-between">
           <span className="inline-flex items-center gap-1.5 text-sm font-medium">
             <Activity className="h-4 w-4" aria-hidden />
-            Uptime · 7 days
+            가동 상태 · 최근 7일
           </span>
           <span
             className={cn(
@@ -36,7 +37,7 @@ export function UptimeCard({ siteId }: { siteId: string }) {
                 : "border-critical/30 bg-critical/10 text-critical",
             )}
           >
-            {healthy ? "Up" : "Down"}
+            {healthy ? "정상" : "중단"}
           </span>
         </div>
         <p className="text-2xl font-semibold tabular-nums">
@@ -50,7 +51,7 @@ export function UptimeCard({ siteId }: { siteId: string }) {
               title={
                 privacy.enabled
                   ? undefined
-                  : `${check.ok ? "ok" : (check.error ?? "down")} · ${
+                  : `${check.ok ? "정상" : readableError(check.error, "응답 오류")} · ${
                       check.latency_ms != null
                         ? formatDuration(check.latency_ms)
                         : "-"
@@ -65,7 +66,7 @@ export function UptimeCard({ siteId }: { siteId: string }) {
           ))}
         </div>
         <p className="text-xs text-muted-foreground">
-          Last check{" "}
+          최근 확인{" "}
           {privacy.enabled ? "********" : relativeTime(summary.lastCheckAt)}
           {summary.lastLatencyMs != null && !privacy.enabled
             ? ` · ${formatDuration(summary.lastLatencyMs)}`

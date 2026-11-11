@@ -13,7 +13,7 @@ export function RequireDashboard() {
 
   switch (status) {
     case "loading":
-      return <FullPageSpinner label="Checking your session" />;
+      return <FullPageSpinner label="로그인 상태 확인 중" />;
     case "signed-out":
       return <Navigate to="/login" replace state={{ from: location }} />;
     case "needs-mfa-setup":
@@ -36,7 +36,7 @@ export function RequireSession() {
 
   switch (status) {
     case "loading":
-      return <FullPageSpinner label="Checking your session" />;
+      return <FullPageSpinner label="로그인 상태 확인 중" />;
     case "signed-out":
       return <Navigate to="/login" replace />;
     case "ready":
@@ -53,7 +53,7 @@ export function RedirectIfAuthenticated() {
   const { status } = useAuth();
 
   if (status === "loading")
-    return <FullPageSpinner label="Checking your session" />;
+    return <FullPageSpinner label="로그인 상태 확인 중" />;
   if (status === "ready") return <Navigate to="/" replace />;
   if (status === "needs-mfa-setup") return <Navigate to="/mfa/setup" replace />;
   if (status === "needs-mfa-verify")

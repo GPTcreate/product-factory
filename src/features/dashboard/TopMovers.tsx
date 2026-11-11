@@ -15,11 +15,11 @@ export function TopMovers({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Top movers - clicks</CardTitle>
+        <CardTitle>검색 클릭 변화가 큰 제품</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <MoverList title="Gainers" rows={gainers} good />
-        <MoverList title="Decliners" rows={decliners} good={false} />
+        <MoverList title="증가한 제품" rows={gainers} good />
+        <MoverList title="감소한 제품" rows={decliners} good={false} />
       </CardContent>
     </Card>
   );
@@ -43,7 +43,7 @@ function MoverList({
         {title}
       </p>
       {rows.length === 0 ? (
-        <p className="text-xs text-muted-foreground">No meaningful change.</p>
+        <p className="text-xs text-muted-foreground">뚜렷한 변화가 없습니다.</p>
       ) : (
         <ul className="space-y-1.5">
           {rows.map((s) => (

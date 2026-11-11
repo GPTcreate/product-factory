@@ -30,8 +30,8 @@ export function revenueSummary(rows: AdSenseDaily[]) {
 }
 export function money(value: number | null, currency: string | null) {
   return value === null || !currency
-    ? "No Data"
-    : new Intl.NumberFormat("en-US", {
+    ? "자료 없음"
+    : new Intl.NumberFormat("ko-KR", {
         style: "currency",
         currency,
         maximumFractionDigits: 2,
@@ -42,7 +42,7 @@ export function metricState(
   hasRows: boolean,
   value: string,
 ) {
-  return !connected ? "Not Connected" : !hasRows ? "No Data" : value;
+  return !connected ? "연결 안 됨" : !hasRows ? "자료 없음" : value;
 }
 export function seoulDate(now = new Date()) {
   return new Intl.DateTimeFormat("en-CA", {
@@ -82,15 +82,15 @@ export function dataAvailability(
     )
       ? undefined
       : items.some((p) => p.ga4_property_id)
-        ? "No Data"
-        : "Not Connected";
+        ? "자료 없음"
+        : "연결 안 됨";
     const search = raw.search.some(
       (r) => ids.has(r.site_id) && r.metric_date >= since,
     )
       ? undefined
       : items.some((p) => p.gsc_property || p.bing_site_url)
-        ? "No Data"
-        : "Not Connected";
+        ? "자료 없음"
+        : "연결 안 됨";
     return { ga4, search };
   };
   return {

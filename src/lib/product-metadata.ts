@@ -61,19 +61,21 @@ export function previewMetadata(
   products: Site[],
 ): MetadataPreview {
   if (raw.length > 128 * 1024)
-    throw new Error("Metadata must be at most 128 KB.");
+    throw new Error("제품 정보 파일은 128KB 이하여야 합니다.");
   let input: unknown;
   try {
     input = JSON.parse(raw);
   } catch {
-    throw new Error("Invalid JSON. Check the file syntax.");
+    throw new Error(
+      "JSON 형식이 올바르지 않습니다. 파일 문법을 확인해 주세요.",
+    );
   }
   if (containsSecret(input))
-    throw new Error("Remove credentials and secrets from the metadata file.");
+    throw new Error("제품 정보 파일에서 인증정보와 비밀값을 제거해 주세요.");
   const parsed = schema.safeParse(input);
   if (!parsed.success)
     throw new Error(
-      "Unsupported metadata format or missing/invalid required fields: product_code, name, domain, website_url.",
+      "지원하지 않는 형식이거나 필수 항목이 없거나 올바르지 않습니다: product_code, name, domain, website_url.",
     );
   const data = parsed.data;
   const matches = products.filter(
@@ -84,7 +86,7 @@ export function previewMetadata(
   );
   if (matches.length > 1)
     throw new Error(
-      "Product code and domain match different products. Resolve the Registry conflict first.",
+      "제품 코드와 도메인이 서로 다른 제품에 연결되어 있습니다. 기존 제품 설정의 충돌을 먼저 해결하세요.",
     );
   const site = matches[0];
   const fields: Partial<SiteFormValues> = {
@@ -124,12 +126,12 @@ export function previewMetadata(
       url = new URL(value);
     } catch {
       if (/https?:\/\//i.test(value))
-        throw new Error("Invalid URL in metadata.");
+        throw new Error("제품 정보 파일의 주소가 올바르지 않습니다.");
       continue;
     }
     if (url.username || url.password || url.search || url.hash)
       throw new Error(
-        "Metadata URLs must not contain credentials, query parameters or fragments.",
+        "제품 정보 주소에는 인증정보·쿼리 매개변수·페이지 위치 표시를 포함할 수 없습니다.",
       );
   }
   const candidate: SiteFormValues = {
@@ -146,9 +148,9 @@ export function previewMetadata(
   const error = onboardingError(candidate, products, site?.id);
   if (error) throw new Error(error);
   const ignored = [
-    "Status and Active are preserved; new products remain inactive.",
-    "core_action_name and GA4 measurement ID are documentation only.",
-    "Unknown fields are ignored; only the listed Registry fields can be applied.",
+    "기존 사업 상태와 활성 설정을 유지하며, 새 제품은 비활성 상태로 등록합니다.",
+    "core_action_name과 GA4 측정 ID는 참고 정보이며 연결 설정에 적용하지 않습니다.",
+    "알 수 없는 항목은 제외하며, 목록에 표시된 제품 설정만 적용할 수 있습니다.",
   ];
   return { site, fields, ignored };
 }

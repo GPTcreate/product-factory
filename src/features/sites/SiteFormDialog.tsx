@@ -13,6 +13,8 @@ import type { Site } from "@/types/database";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert } from "@/components/ui/alert";
+import { PRODUCT_STATUS_LABELS } from "@/features/factory/operations-labels";
+import { MARKET_LABELS } from "./site-labels";
 
 function toDefaults(site?: Site): SiteFormValues {
   return {
@@ -82,7 +84,7 @@ export function SiteFormDialog({
         setFormError(
           err instanceof SaveSiteError
             ? err.message
-            : "Could not delete the product.",
+            : "제품을 삭제하지 못했습니다.",
         ),
     });
   };
@@ -111,7 +113,7 @@ export function SiteFormDialog({
           setFormError(
             err instanceof SaveSiteError
               ? err.message
-              : "Could not save the product. Please try again.",
+              : "제품을 저장하지 못했습니다. 다시 시도하세요.",
           ),
       },
     );
@@ -127,15 +129,15 @@ export function SiteFormDialog({
         className="mt-10 w-full max-w-lg rounded-lg border border-border bg-card p-5 shadow-xl"
         role="dialog"
         aria-modal="true"
-        aria-label={mode === "create" ? "Add product" : "Edit product"}
+        aria-label={mode === "create" ? "제품 등록" : "제품 편집"}
       >
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold">
-            {mode === "create" ? "Add a product" : "Edit product"}
+            {mode === "create" ? "제품 등록" : "제품 편집"}
           </h2>
           <button
             onClick={onClose}
-            aria-label="Close"
+            aria-label="닫기"
             className="rounded-md p-1 text-muted-foreground hover:bg-muted"
           >
             <X className="h-4 w-4" />
@@ -143,10 +145,10 @@ export function SiteFormDialog({
         </div>
 
         <nav
-          aria-label="Registration steps"
+          aria-label="제품 등록 단계"
           className="mt-4 flex flex-wrap gap-2 text-sm"
         >
-          {["Product information", "Provider identifiers", "Readiness"].map(
+          {["제품 정보", "연결 서비스 식별 정보", "준비 상태"].map(
             (label, index) => (
               <button
                 type="button"
@@ -169,82 +171,87 @@ export function SiteFormDialog({
           target="_blank"
           rel="noreferrer"
         >
-          Read onboarding guide
+          제품 등록 안내 보기
         </a>
         <form onSubmit={onSubmit} className="mt-4 space-y-3" noValidate>
           {formError && <Alert tone="error">{formError}</Alert>}
           <h3 id={`${sectionId}-0`} className="font-semibold">
-            1. Product information
+            1. 제품 정보
           </h3>
           <p className="text-xs text-muted-foreground">
-            Status tracks the business lifecycle. It does not enable collection.
+            제품 상태는 사업 진행 단계를 나타냅니다. 상태를 바꾸어도 수집이
+            활성화되지는 않습니다.
           </p>
 
           <div className="grid grid-cols-2 gap-3">
             <label className="text-sm">
-              Product code
+              제품 코드
               <Input {...register("product_code")} placeholder="P001" />
             </label>
             <label className="text-sm">
-              Status
+              제품 상태
               <select className="factory-input" {...register("status")}>
                 {PRODUCT_STATUSES.map((v) => (
-                  <option key={v}>{v}</option>
+                  <option key={v} value={v}>
+                    {PRODUCT_STATUS_LABELS[v]}
+                  </option>
                 ))}
               </select>
             </label>
             <label className="text-sm">
-              Market
+              대상 시장
               <select className="factory-input" {...register("market")}>
                 {MARKETS.map((v) => (
-                  <option key={v}>{v}</option>
+                  <option key={v} value={v}>
+                    {MARKET_LABELS[v]}
+                  </option>
                 ))}
               </select>
             </label>
             <label className="text-sm">
-              Language
+              대표 언어
               <Input {...register("primary_language")} />
             </label>
             <label className="text-sm">
-              Level
+              제품 단계
               <select
                 className="factory-input"
                 {...register("level", { valueAsNumber: true })}
               >
                 {[1, 2, 3].map((v) => (
                   <option key={v} value={v}>
-                    Level {v}
+                    제품 단계 {v}
                   </option>
                 ))}
               </select>
             </label>
             <label className="text-sm">
-              Version
+              버전
               <Input {...register("version")} />
             </label>
             <label className="text-sm">
-              Launch date
+              출시일
               <Input type="date" {...register("launch_date")} />
             </label>
           </div>
-          <Field label="Name" error={errors.name?.message}>
+          <Field label="제품 이름" error={errors.name?.message}>
             <Input
-              {...register("name", { required: "Name is required" })}
-              placeholder="Example Blog"
+              {...register("name", { required: "제품 이름을 입력하세요." })}
+              placeholder="예시 블로그"
             />
           </Field>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Field label="Domain" error={errors.domain?.message}>
+            <Field label="도메인" error={errors.domain?.message}>
               <Input
-                {...register("domain", { required: "Domain is required" })}
+                {...register("domain", { required: "도메인을 입력하세요." })}
                 placeholder="example.com"
               />
             </Field>
-            <Field label="Website URL" error={errors.website_url?.message}>
+            <Field label="사이트 주소" error={errors.website_url?.message}>
               <Input
                 {...register("website_url", {
-                  required: "Website URL is required",
+                  required: "사이트 주소를 입력하세요.",
                 })}
                 placeholder="https://example.com"
               />
@@ -252,15 +259,15 @@ export function SiteFormDialog({
           </div>
 
           <h3 id={`${sectionId}-1`} className="font-semibold">
-            2. Provider identifiers
+            2. 연결 서비스 식별 정보
           </h3>
           <p className="text-xs text-muted-foreground">
-            Only enter identifiers you have verified. Configured does not mean
-            authentication or report access has succeeded.
+            확인한 식별 정보만 입력하세요. 설정을 입력해도 인증이나 보고서
+            접근이 성공했다는 뜻은 아닙니다.
           </p>
           <Field
-            label="GSC property"
-            hint="Domain property: sc-domain:example.com · URL-prefix: full URL"
+            label="GSC 속성"
+            hint="도메인 속성: sc-domain:example.com · URL 접두어 속성: 전체 주소"
           >
             <Input
               {...register("gsc_property")}
@@ -268,11 +275,14 @@ export function SiteFormDialog({
             />
           </Field>
 
-          <Field label="GA4 property ID" hint="Numeric ID, not the G-XXXX code">
+          <Field label="GA4 속성 ID" hint="G-XXXX 코드가 아닌 숫자 ID">
             <Input {...register("ga4_property_id")} placeholder="483920114" />
           </Field>
 
-          <Field label="Bing site URL" hint="Leave blank if not using Bing">
+          <Field
+            label="Bing 사이트 주소"
+            hint="Bing을 사용하지 않으면 비워두세요."
+          >
             <Input
               {...register("bing_site_url")}
               placeholder="https://example.com/"
@@ -280,54 +290,56 @@ export function SiteFormDialog({
           </Field>
 
           <label className="block text-sm">
-            GitHub repository URL
+            GitHub 저장소 주소
             <Input
               {...register("github_repo")}
               placeholder="https://github.com/owner/repository"
             />
           </label>
           <label className="block text-sm">
-            Deployment URL
+            배포 주소
             <Input
               {...register("deploy_url")}
               placeholder="https://example.pages.dev"
             />
           </label>
           <label className="block text-sm">
-            AdSense verified site domain
+            AdSense에서 확인한 사이트 도메인
             <Input
               {...register("adsense_mapping_key")}
               placeholder="iposcore.kr"
             />
             <span className="text-xs text-muted-foreground">
-              Exact AdSense site domain. One domain maps to one product.
+              AdSense에 등록된 정확한 사이트 도메인입니다. 도메인 하나는 제품
+              하나에 연결됩니다.
             </span>
           </label>
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" {...register("adsense_enabled")} /> Enable
-            AdSense
+            <input type="checkbox" {...register("adsense_enabled")} /> AdSense
+            사용
           </label>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" {...register("is_active")} />
-            Active
+            수집 활성화
           </label>
           <h3 id={`${sectionId}-2`} className="font-semibold">
-            3. Readiness before saving
+            3. 저장 전 준비 상태
           </h3>
           <p className="text-xs text-muted-foreground">
-            Active includes this product in scheduled collection and uptime
-            checks when existing jobs are enabled. New products start inactive.
-            This form cannot verify credentials or scheduled jobs.
+            수집을 활성화하면 기존 예약 작업이 켜져 있을 때 이 제품을 예약
+            수집과 가동 상태 확인에 포함합니다. 새 제품은 수집이 꺼진 상태로
+            시작합니다. 이 화면에서는 인증 정보나 예약 작업의 실행 여부를 검증할
+            수 없습니다.
           </p>
-          <ul className="space-y-1 text-xs" aria-label="Readiness checks">
+          <ul className="space-y-1 text-xs" aria-label="준비 상태 점검">
             <li>
-              Product information:{" "}
+              제품 정보:{" "}
               {watch("name") && watch("domain") && watch("website_url")
-                ? "entered; validation occurs on save"
-                : "required fields missing"}
+                ? "입력됨 · 저장 시 검증합니다."
+                : "필수 항목이 누락되었습니다."}
             </li>
             <li>
-              Providers:{" "}
+              연결 서비스:{" "}
               {[
                 watch("ga4_property_id") && "GA4",
                 watch("gsc_property") && "GSC",
@@ -335,14 +347,14 @@ export function SiteFormDialog({
                 watch("adsense_enabled") && "AdSense",
               ]
                 .filter(Boolean)
-                .join(", ") || "none configured; registration can proceed"}
+                .join(", ") || "설정 없음 · 제품 등록은 가능합니다."}
             </li>
-            <li>Provider report access and scheduled collection: unverified</li>
+            <li>서비스 보고서 접근 권한과 예약 수집: 확인되지 않음</li>
             <li>
-              Collection eligibility:{" "}
+              수집 대상 여부:{" "}
               {watch("is_active")
-                ? "active; confirm readiness before saving"
-                : "inactive until you enable it"}
+                ? "활성화됨 · 저장 전 준비 상태를 확인하세요."
+                : "직접 활성화하기 전까지 수집하지 않습니다."}
             </li>
           </ul>
 
@@ -351,7 +363,7 @@ export function SiteFormDialog({
               confirmDelete ? (
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-muted-foreground">
-                    Delete product and all its data?
+                    제품과 관련 데이터를 모두 삭제할까요?
                   </span>
                   <Button
                     type="button"
@@ -360,7 +372,7 @@ export function SiteFormDialog({
                     loading={deletion.isPending}
                     onClick={onDelete}
                   >
-                    Delete
+                    삭제
                   </Button>
                   <Button
                     type="button"
@@ -368,7 +380,7 @@ export function SiteFormDialog({
                     size="sm"
                     onClick={() => setConfirmDelete(false)}
                   >
-                    Keep
+                    유지
                   </Button>
                 </div>
               ) : (
@@ -379,7 +391,7 @@ export function SiteFormDialog({
                   className="text-critical"
                   onClick={() => setConfirmDelete(true)}
                 >
-                  Delete product
+                  제품 삭제
                 </Button>
               )
             ) : (
@@ -388,18 +400,18 @@ export function SiteFormDialog({
 
             <div className="flex gap-2">
               <Button type="button" variant="ghost" onClick={onClose}>
-                Cancel
+                취소
               </Button>
               <Button type="submit" loading={mutation.isPending}>
-                {mode === "create" ? "Add product" : "Save changes"}
+                {mode === "create" ? "제품 등록" : "변경 저장"}
               </Button>
             </div>
           </div>
         </form>
 
         <p className="mt-3 text-xs text-muted-foreground">
-          Provider identifiers configure integrations. Verify report access and
-          original run evidence separately after registration.
+          식별 정보는 서비스 연결에 사용됩니다. 등록 후 보고서 접근 권한과 실제
+          실행 기록을 별도로 확인하세요.
         </p>
       </div>
     </div>

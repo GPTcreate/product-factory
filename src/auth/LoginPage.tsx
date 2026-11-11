@@ -11,8 +11,8 @@ import { AuthShell } from "@/auth/AuthShell";
 import { describeLoginError } from "@/auth/loginError";
 
 const schema = z.object({
-  email: z.string().email("Enter a valid email address"),
-  password: z.string().min(1, "Enter your password"),
+  email: z.string().email("올바른 이메일 주소를 입력하세요."),
+  password: z.string().min(1, "비밀번호를 입력하세요."),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -32,7 +32,9 @@ export function LoginPage() {
     setFormError(null);
     const parsed = schema.safeParse(raw);
     if (!parsed.success) {
-      setFormError(parsed.error.issues[0]?.message ?? "Invalid input");
+      setFormError(
+        parsed.error.issues[0]?.message ?? "입력 내용을 확인하세요.",
+      );
       return;
     }
 
@@ -52,13 +54,13 @@ export function LoginPage() {
   return (
     <AuthShell
       title="Product Factory"
-      subtitle="Sign in to the website portfolio control center"
+      subtitle="제품 포트폴리오 관리 화면에 로그인하세요."
     >
       <form onSubmit={onSubmit} className="space-y-4" noValidate>
         {formError && <Alert tone="error">{formError}</Alert>}
 
         <div className="space-y-1.5">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">이메일</Label>
           <Input
             id="email"
             type="email"
@@ -73,7 +75,7 @@ export function LoginPage() {
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">비밀번호</Label>
           <Input
             id="password"
             type="password"
@@ -87,14 +89,14 @@ export function LoginPage() {
         </div>
 
         <Button type="submit" className="w-full" loading={isSubmitting}>
-          Sign in
+          로그인
         </Button>
 
         <a
           href="/demo"
           className="flex h-10 w-full items-center justify-center rounded-md border border-border text-sm font-medium transition-colors hover:bg-muted"
         >
-          View public demo
+          공개 데모 보기
         </a>
 
         <div className="text-center text-sm">
@@ -102,11 +104,11 @@ export function LoginPage() {
             to="/reset-password"
             className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           >
-            Forgot your password?
+            비밀번호를 잊으셨나요?
           </Link>
         </div>
         <nav
-          aria-label="Product Factory information"
+          aria-label="Product Factory 안내"
           className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground"
         >
           <a href="/about" className="underline">

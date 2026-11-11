@@ -30,11 +30,18 @@ import {
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 const NAV = [
-  { to: "/demo", label: "Overview", icon: BarChart3, end: true },
-  { to: "/demo/sites", label: "Sites", icon: Globe2 },
-  { to: "/demo/sync-history", label: "Sync history", icon: History },
-  { to: "/demo/system", label: "System", icon: Database },
+  { to: "/demo", label: "전체 현황", icon: BarChart3, end: true },
+  { to: "/demo/sites", label: "제품", icon: Globe2 },
+  { to: "/demo/sync-history", label: "수집 이력", icon: History },
+  { to: "/demo/system", label: "시스템", icon: Database },
 ];
+
+const TABLE_LABELS: Record<string, string> = {
+  search_query_daily: "일별 검색어",
+  search_page_daily: "일별 검색 페이지",
+  analytics_daily: "일별 방문 지표",
+  sync_runs: "수집 이력",
+};
 
 const traffic: ChartRow[] = [
   ["2026-06-13", 184, 241],
@@ -56,7 +63,7 @@ const traffic: ChartRow[] = [
 
 const syncRuns = [
   [
-    "Jul 12, 04:20",
+    "7월 12일 04:20",
     "Trail Notes",
     "GSC",
     "Scheduled",
@@ -65,7 +72,7 @@ const syncRuns = [
     "420",
   ],
   [
-    "Jul 12, 04:10",
+    "7월 12일 04:10",
     "Pantry Journal",
     "GA4",
     "Scheduled",
@@ -74,7 +81,7 @@ const syncRuns = [
     "31",
   ],
   [
-    "Jul 12, 04:00",
+    "7월 12일 04:00",
     "Weekend Atlas",
     "Bing",
     "Scheduled",
@@ -82,9 +89,17 @@ const syncRuns = [
     "1.1s",
     "18",
   ],
-  ["Jul 11, 15:42", "Studio Ledger", "GSC", "Manual", "Success", "1.5s", "447"],
   [
-    "Jul 11, 04:20",
+    "7월 11일 15:42",
+    "Studio Ledger",
+    "GSC",
+    "Manual",
+    "Success",
+    "1.5s",
+    "447",
+  ],
+  [
+    "7월 11일 04:20",
     "Weekend Atlas",
     "GA4",
     "Scheduled",
@@ -106,7 +121,7 @@ export function DemoLayout() {
         </div>
         <div className="mx-3 mb-3 flex items-center gap-2 rounded-md border border-primary/25 bg-primary/10 px-3 py-2 text-xs text-primary">
           <Sparkles className="h-3.5 w-3.5" />
-          Demo · synthetic data
+          예시 화면 · 가상 자료
         </div>
         <nav className="flex gap-1 overflow-x-auto px-2 pb-2 md:flex-col md:gap-0.5 md:pb-4">
           {NAV.map(({ to, label, icon: Icon, end }) => (
@@ -131,7 +146,7 @@ export function DemoLayout() {
         </nav>
         <div className="mt-auto space-y-2 border-t border-border p-3">
           <p className="px-1 text-xs text-muted-foreground">
-            All downloads use synthetic demo data.
+            다운로드 파일에는 가상 예시 자료가 담깁니다.
           </p>
           <a
             href="https://github.com/jafforgehq/site-analytics-tool"
@@ -139,7 +154,7 @@ export function DemoLayout() {
             rel="noreferrer"
             className="flex h-9 items-center justify-center rounded-md border border-border bg-card text-sm font-medium hover:bg-muted"
           >
-            Deployment guide on GitHub
+            GitHub 배포 안내
           </a>
           <DemoExportAllDataButton />
         </div>
@@ -156,10 +171,10 @@ export function DemoOverviewPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-primary/25 bg-primary/10 px-4 py-3 text-sm">
         <div>
-          <span className="font-medium text-primary">Public product demo</span>
+          <span className="font-medium text-primary">공개 예시 화면</span>
           <span className="text-muted-foreground">
             {" "}
-            - synthetic data only; no account or real integration is involved.
+            · 가상 자료로 구성되어 실제 계정이나 서비스와 연결되지 않습니다.
           </span>
         </div>
         <a
@@ -168,24 +183,24 @@ export function DemoOverviewPage() {
           rel="noreferrer"
           className="text-sm font-medium text-primary hover:underline"
         >
-          View source
+          소스 보기
         </a>
       </div>
       <PageTitle
-        title="Portfolio overview"
-        description="A public demo using synthetic data only."
+        title="전체 제품 현황"
+        description="가상 자료로 둘러보는 공개 예시 화면입니다."
       />
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Kpi label="Search clicks" value="3,842" change="+12.8%" />
-        <Kpi label="Impressions" value="98,240" change="+18.4%" />
-        <Kpi label="Active users" value="4,186" change="+9.2%" />
-        <Kpi label="Sessions" value="5,329" change="+7.6%" />
+        <Kpi label="검색 클릭" value="3,842" change="+12.8%" />
+        <Kpi label="노출" value="98,240" change="+18.4%" />
+        <Kpi label="활성 사용자" value="4,186" change="+9.2%" />
+        <Kpi label="세션" value="5,329" change="+7.6%" />
       </div>
       <div className="grid gap-3 xl:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Traffic trend</CardTitle>
-            <p className="text-xs text-muted-foreground">Last 30 days</p>
+            <CardTitle>방문 추이</CardTitle>
+            <p className="text-xs text-muted-foreground">최근 30일</p>
           </CardHeader>
           <CardContent>
             <MetricLineChart
@@ -200,24 +215,24 @@ export function DemoOverviewPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Action items</CardTitle>
-            <span className="text-xs text-muted-foreground">3 insights</span>
+            <CardTitle>조치할 항목</CardTitle>
+            <span className="text-xs text-muted-foreground">분석 3건</span>
           </CardHeader>
           <CardContent className="space-y-4">
             <Insight
               tone="warning"
-              title="Bing data is stale for Weekend Atlas"
-              detail="No successful Bing sync in the last 36 hours."
+              title="Weekend Atlas의 Bing 자료가 오래되었습니다"
+              detail="최근 36시간 동안 성공한 Bing 수집이 없습니다."
             />
             <Insight
               tone="positive"
-              title="Trail Notes search clicks are up 32%"
-              detail="A healthy increase compared with the previous 30 days."
+              title="Trail Notes의 검색 클릭이 32% 증가했습니다"
+              detail="이전 30일보다 뚜렷하게 증가했습니다."
             />
             <Insight
               tone="info"
-              title="Pantry Journal has growing impressions"
-              detail="Search visibility rose 18% while CTR remained steady."
+              title="Pantry Journal의 노출이 증가하고 있습니다"
+              detail="클릭률은 비슷한 수준을 유지하며 검색 노출이 18% 증가했습니다."
             />
           </CardContent>
         </Card>
@@ -225,7 +240,7 @@ export function DemoOverviewPage() {
       <div className="grid gap-3 xl:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Top movers - clicks</CardTitle>
+            <CardTitle>클릭 변화가 큰 제품</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <Mover name="Trail Notes" value="+32.1%" up />
@@ -235,23 +250,23 @@ export function DemoOverviewPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Data coverage</CardTitle>
+            <CardTitle>자료 수집 현황</CardTitle>
             <span className="text-xs text-muted-foreground">
-              11/12 feeds current
+              수집 경로 12개 중 11개 최신
             </span>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <Coverage
               source="Google Search Console"
-              detail="All portfolio feeds current"
+              detail="모든 제품의 수집 자료가 최신입니다"
             />
             <Coverage
               source="Google Analytics 4"
-              detail="All portfolio feeds current"
+              detail="모든 제품의 수집 자료가 최신입니다"
             />
             <Coverage
               source="Bing Webmaster Tools"
-              detail="Weekend Atlas needs a sync"
+              detail="Weekend Atlas의 자료 수집이 필요합니다"
               warning
             />
           </CardContent>
@@ -259,23 +274,23 @@ export function DemoOverviewPage() {
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>What you can try</CardTitle>
+          <CardTitle>둘러볼 기능</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-3">
           <DemoTry
             icon={Globe2}
-            title="Explore a site"
-            detail="Open any demo site to inspect traffic, search terms, and integration health."
+            title="제품 살펴보기"
+            detail="예시 제품을 열어 방문 현황, 검색어, 연결 상태를 확인하세요."
           />
           <DemoTry
             icon={FileText}
-            title="Export a PDF"
-            detail="Download a realistic site report generated entirely from synthetic metrics."
+            title="PDF 내보내기"
+            detail="가상 지표로 만든 제품 보고서를 다운로드하세요."
           />
           <DemoTry
             icon={Download}
-            title="Export data"
-            detail="Download the demo portfolio as a JSON bundle or a CSV ZIP."
+            title="자료 내보내기"
+            detail="예시 제품 자료를 JSON 파일이나 CSV ZIP으로 다운로드하세요."
           />
         </CardContent>
       </Card>
@@ -287,8 +302,8 @@ export function DemoSitesPage() {
   return (
     <div className="space-y-6">
       <PageTitle
-        title="Sites"
-        description="Example managed websites and integration health."
+        title="제품"
+        description="관리 중인 제품과 연결 상태를 보여주는 예시입니다."
       />
       <div className="grid gap-3 lg:grid-cols-2">
         {DEMO_SITES.map((site) => (
@@ -312,7 +327,7 @@ export function DemoSitesPage() {
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Open demo site details and exports
+                  예시 제품 상세 보기 · 내보내기
                 </p>
               </CardContent>
             </Card>
@@ -330,11 +345,11 @@ export function DemoSiteDetailPage() {
     return (
       <div className="space-y-3">
         <PageTitle
-          title="Demo site not found"
-          description="Choose a site from the synthetic demo portfolio."
+          title="예시 제품을 찾을 수 없습니다"
+          description="가상 제품 목록에서 제품을 선택해 주세요."
         />
         <Link to="/demo/sites" className="text-sm text-primary hover:underline">
-          Back to demo sites
+          예시 제품 목록으로
         </Link>
       </div>
     );
@@ -356,7 +371,7 @@ export function DemoSiteDetailPage() {
             to="/demo/sites"
             className="text-sm text-primary hover:underline"
           >
-            ← All demo sites
+            ← 예시 제품 전체
           </Link>
           <h1 className="mt-2 text-xl font-semibold">{site.name}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -366,22 +381,22 @@ export function DemoSiteDetailPage() {
         <div className="flex flex-col items-end gap-1">
           <DemoPdfExportButton site={site} />
           <span className="text-xs text-muted-foreground">
-            Generated from synthetic demo data
+            가상 예시 자료로 생성됩니다
           </span>
         </div>
       </div>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Kpi label="Sessions" value={site.sessions} change={site.change} />
-        <Kpi label="Google clicks" value={site.clicks} change="+14.2%" />
-        <Kpi label="Engagement rate" value="67.8%" change="+3.1%" />
-        <Kpi label="Average position" value="18.6" change="−1.4%" />
+        <Kpi label="세션" value={site.sessions} change={site.change} />
+        <Kpi label="Google 클릭" value={site.clicks} change="+14.2%" />
+        <Kpi label="참여율" value="67.8%" change="+3.1%" />
+        <Kpi label="평균 검색 순위" value="18.6" change="−1.4%" />
       </div>
       <div className="grid gap-3 xl:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Traffic trend</CardTitle>
+            <CardTitle>방문 추이</CardTitle>
             <p className="text-xs text-muted-foreground">
-              Last 60 days · synthetic demo data
+              최근 60일 · 가상 예시 자료
             </p>
           </CardHeader>
           <CardContent>
@@ -397,7 +412,7 @@ export function DemoSiteDetailPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Integration health</CardTitle>
+            <CardTitle>연결 상태</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <Health source="Google Search Console" state="Healthy" />
@@ -412,7 +427,7 @@ export function DemoSiteDetailPage() {
       <div className="grid gap-3 xl:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Top queries</CardTitle>
+            <CardTitle>상위 검색어</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {terms.queries.map((term) => (
@@ -422,7 +437,7 @@ export function DemoSiteDetailPage() {
               >
                 <span className="truncate">{term.key}</span>
                 <span className="shrink-0 text-muted-foreground">
-                  {term.clicks} clicks
+                  클릭 {term.clicks}회
                 </span>
               </div>
             ))}
@@ -430,7 +445,7 @@ export function DemoSiteDetailPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Top pages</CardTitle>
+            <CardTitle>상위 페이지</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {terms.pages.map((term) => (
@@ -442,7 +457,7 @@ export function DemoSiteDetailPage() {
                   {term.key.replace(`https://${site.domain}`, "")}
                 </span>
                 <span className="shrink-0 text-muted-foreground">
-                  {term.clicks} clicks
+                  클릭 {term.clicks}회
                 </span>
               </div>
             ))}
@@ -457,21 +472,21 @@ export function DemoSyncHistoryPage() {
   return (
     <div className="space-y-6">
       <PageTitle
-        title="Sync history"
-        description="Every example sync attempt across the synthetic portfolio."
+        title="수집 이력"
+        description="가상 제품 전체의 자료 수집 시도 내역입니다."
       />
       <Card>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b text-left text-xs text-muted-foreground">
-                <th className="px-4 py-3">Started</th>
-                <th className="px-4 py-3">Website</th>
-                <th className="px-4 py-3">Source</th>
-                <th className="px-4 py-3">Trigger</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Duration</th>
-                <th className="px-4 py-3 text-right">Rows</th>
+                <th className="px-4 py-3">시작 시각</th>
+                <th className="px-4 py-3">제품</th>
+                <th className="px-4 py-3">자료 출처</th>
+                <th className="px-4 py-3">실행 방식</th>
+                <th className="px-4 py-3">상태</th>
+                <th className="px-4 py-3">소요 시간</th>
+                <th className="px-4 py-3 text-right">자료 행 수</th>
               </tr>
             </thead>
             <tbody>
@@ -487,13 +502,13 @@ export function DemoSyncHistoryPage() {
                     <td className="px-4 py-3 font-medium">{site}</td>
                     <td className="px-4 py-3">{source}</td>
                     <td className="px-4 py-3 text-muted-foreground">
-                      {trigger}
+                      {trigger === "Scheduled" ? "예약 실행" : "수동 실행"}
                     </td>
                     <td className="px-4 py-3">
                       <Status status={status} />
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
-                      {duration}
+                      {duration.replace(/s$/, "초")}
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums">
                       {rows}
@@ -513,18 +528,18 @@ export function DemoSystemPage() {
   return (
     <div className="space-y-6">
       <PageTitle
-        title="System"
-        description="Example database usage and retention controls."
+        title="시스템"
+        description="데이터베이스 사용량과 자료 보관 정책의 예시입니다."
       />
       <Card>
         <CardContent className="p-5">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="font-semibold">Database usage</p>
+              <p className="font-semibold">데이터베이스 사용량</p>
               <p className="mt-2 text-2xl font-semibold">
                 42.8 MB{" "}
                 <span className="text-base font-normal text-muted-foreground">
-                  of 500 MB
+                  / 500 MB
                 </span>
               </p>
             </div>
@@ -545,12 +560,12 @@ export function DemoSystemPage() {
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Data retention</CardTitle>
+          <CardTitle>자료 보관 기간</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3 text-sm sm:grid-cols-3">
-          <Retention label="Daily metrics" value="540 days" />
-          <Retention label="Query & page detail" value="210 days" />
-          <Retention label="Sync history" value="120 days" />
+          <Retention label="일별 지표" value="540일" />
+          <Retention label="검색어 · 페이지 상세" value="210일" />
+          <Retention label="수집 이력" value="120일" />
         </CardContent>
       </Card>
     </div>
@@ -587,7 +602,7 @@ function Kpi({
         <p className="mt-1 text-2xl font-semibold tabular-nums">{value}</p>
         <p className="mt-1 flex items-center gap-1 text-xs text-success">
           <TrendingUp className="h-3 w-3" />
-          {change} vs prev.
+          이전 기간 대비 {change}
         </p>
       </CardContent>
     </Card>
@@ -701,7 +716,7 @@ function Health({ source, state }: { source: string; state: string }) {
       )}
     >
       <CheckCircle2 className="h-3.5 w-3.5" />
-      {source} · {state}
+      {source} · {attention ? "확인 필요" : "정상"}
     </span>
   );
 }
@@ -716,14 +731,17 @@ function Status({ status }: { status: string }) {
           : "border-success/30 bg-success/10 text-success",
       )}
     >
-      {status}
+      {partial ? "일부 완료" : "성공"}
     </span>
   );
 }
 function Usage({ name, value }: { name: string; value: string }) {
   return (
     <div className="flex justify-between rounded-md bg-muted px-3 py-2">
-      <code className="text-xs">{name}</code>
+      <span>
+        <span className="block">{TABLE_LABELS[name] ?? name}</span>
+        <code className="text-xs text-muted-foreground">{name}</code>
+      </span>
       <span className="font-medium">{value}</span>
     </div>
   );

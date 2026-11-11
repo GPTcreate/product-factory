@@ -33,7 +33,7 @@ export function ResetPasswordPage() {
     setError(null);
     setNotice(null);
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-      setError("Enter a valid email address.");
+      setError("올바른 이메일 주소를 입력하세요.");
       return;
     }
     setBusy(true);
@@ -43,7 +43,7 @@ export function ResetPasswordPage() {
       });
       // Generic confirmation - never reveal whether the email exists.
       setNotice(
-        "If that email belongs to an account, a reset link is on its way.",
+        "등록된 계정의 이메일이라면 비밀번호 재설정 링크를 보내드립니다.",
       );
     } finally {
       setBusy(false);
@@ -54,7 +54,7 @@ export function ResetPasswordPage() {
     e.preventDefault();
     setError(null);
     if (password.length < 8) {
-      setError("Use a password of at least 8 characters.");
+      setError("비밀번호는 8자 이상으로 입력하세요.");
       return;
     }
     setBusy(true);
@@ -63,7 +63,9 @@ export function ResetPasswordPage() {
         password,
       });
       if (updateError) {
-        setError("Could not update the password. The link may have expired.");
+        setError(
+          "비밀번호를 변경하지 못했습니다. 링크가 만료되었을 수 있습니다.",
+        );
         return;
       }
       navigate("/", { replace: true });
@@ -74,11 +76,11 @@ export function ResetPasswordPage() {
 
   if (mode === "update") {
     return (
-      <AuthShell title="Choose a new password">
+      <AuthShell title="새 비밀번호 설정">
         <form onSubmit={onUpdate} className="space-y-4">
           {error && <Alert tone="error">{error}</Alert>}
           <div className="space-y-1.5">
-            <Label htmlFor="new-password">New password</Label>
+            <Label htmlFor="new-password">새 비밀번호</Label>
             <Input
               id="new-password"
               type="password"
@@ -89,7 +91,7 @@ export function ResetPasswordPage() {
             />
           </div>
           <Button type="submit" className="w-full" loading={busy}>
-            Update password
+            비밀번호 변경
           </Button>
         </form>
       </AuthShell>
@@ -98,14 +100,14 @@ export function ResetPasswordPage() {
 
   return (
     <AuthShell
-      title="Reset your password"
-      subtitle="We'll email you a link to set a new password"
+      title="비밀번호 재설정"
+      subtitle="새 비밀번호를 설정할 링크를 이메일로 보내드립니다."
     >
       <form onSubmit={onRequest} className="space-y-4">
         {error && <Alert tone="error">{error}</Alert>}
         {notice && <Alert tone="success">{notice}</Alert>}
         <div className="space-y-1.5">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">이메일</Label>
           <Input
             id="email"
             type="email"
@@ -116,14 +118,14 @@ export function ResetPasswordPage() {
           />
         </div>
         <Button type="submit" className="w-full" loading={busy}>
-          Send reset link
+          재설정 링크 보내기
         </Button>
         <div className="text-center text-sm">
           <Link
             to="/login"
             className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           >
-            Back to sign in
+            로그인으로 돌아가기
           </Link>
         </div>
       </form>
