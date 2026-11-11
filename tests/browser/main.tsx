@@ -21,10 +21,10 @@ createRoot(document.getElementById("root")!).render(
           <p className="mb-8 font-semibold">Product Factory</p>
           <nav className="space-y-4">
             {[
-              ["/tests/browser/index.html", "Overview"],
-              ["/products", "Products"],
-              ["/ideas", "Ideas"],
-              ["/factory", "Factory"],
+              ["/tests/browser/index.html", "전체 현황"],
+              ["/products", "제품"],
+              ["/ideas", "아이디어"],
+              ["/factory", "주간 관리"],
             ].map(([to, label]) => (
               <Link className="block text-sm" key={to} to={to}>
                 {label}

@@ -21,15 +21,15 @@ import { APP_COMMIT } from "@/lib/build-info";
 import { usePrivacyMode } from "@/lib/privacy";
 
 const NAV = [
-  { to: "/", label: "Overview", icon: LayoutDashboard, end: true },
-  { to: "/products", label: "Products", icon: Globe, end: false },
-  { to: "/ideas", label: "Ideas", icon: Lightbulb, end: false },
-  { to: "/factory", label: "Factory", icon: Factory, end: false },
-  { to: "/sync-runs", label: "Sync history", icon: History, end: false },
-  { to: "/system", label: "System", icon: Database, end: false },
+  { to: "/", label: "전체 현황", icon: LayoutDashboard, end: true },
+  { to: "/products", label: "제품", icon: Globe, end: false },
+  { to: "/ideas", label: "아이디어", icon: Lightbulb, end: false },
+  { to: "/factory", label: "주간 관리", icon: Factory, end: false },
+  { to: "/sync-runs", label: "수집 이력", icon: History, end: false },
+  { to: "/system", label: "시스템", icon: Database, end: false },
   {
     to: "/settings/security",
-    label: "Security",
+    label: "보안",
     icon: ShieldCheck,
     end: false,
   },
@@ -84,7 +84,7 @@ export function AppLayout() {
             onClick={() => void signOut()}
           >
             <LogOut className="h-4 w-4" aria-hidden />
-            Sign out
+            로그아웃
           </Button>
           <p className="px-1 pt-3 text-[10px] font-medium text-muted-foreground">
             Commit {APP_COMMIT}

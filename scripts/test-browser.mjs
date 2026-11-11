@@ -205,7 +205,7 @@ await page.route("https://fixture.supabase.test/**", async (route) => {
   });
 });
 await page.goto("http://127.0.0.1:5187/tests/browser/index.html");
-await page.getByRole("link", { name: "Products", exact: true }).click();
+await page.getByRole("link", { name: "제품", exact: true }).click();
 await page.getByRole("button", { name: "Register P001" }).click();
 await mkdir("test-results", { recursive: true });
 await page.getByRole("navigation", { name: "Registration steps" }).waitFor();
@@ -231,13 +231,13 @@ await page.getByText("IPOScore", { exact: true }).first().waitFor();
 assert.equal(sites[0].product_code, "P001");
 assert.equal(sites[0].status, "LIVE");
 await page.getByRole("link").filter({ hasText: "IPOScore" }).first().click();
-await page.getByRole("button", { name: "Edit", exact: true }).click();
+await page.getByRole("button", { name: "제품 편집", exact: true }).click();
 await page.getByLabel("AdSense verified site domain").fill("iposcore.kr");
 await page.getByLabel("Enable AdSense").check();
 await page.getByRole("button", { name: "Save changes" }).click();
-await page.getByRole("button", { name: "Revenue", exact: true }).click();
+await page.getByRole("button", { name: "수익", exact: true }).click();
 await page.getByText("$2.00", { exact: true }).first().waitFor();
-await page.getByRole("link", { name: "Ideas", exact: true }).click();
+await page.getByRole("link", { name: "아이디어", exact: true }).click();
 await page.getByRole("button", { name: "Add idea", exact: true }).click();
 await page.getByLabel("Title", { exact: true }).fill("Fixture utility");
 await page
@@ -249,18 +249,18 @@ await page.getByLabel("Title", { exact: true }).fill("Updated utility");
 await page.getByRole("button", { name: "Save idea" }).click();
 await page.getByRole("button", { name: "Updated utility" }).waitFor();
 assert.equal(ideas[0].title, "Updated utility");
-await page.getByRole("link", { name: "Factory", exact: true }).click();
+await page.getByRole("link", { name: "주간 관리", exact: true }).click();
 await page
-  .getByLabel("Current week product", { exact: true })
+  .getByLabel("이번 주 제품", { exact: true })
   .selectOption(sites[0].id);
-await page.getByLabel("Experiment hypothesis").fill("Weekly traffic increases");
-await page.getByRole("button", { name: "Save week" }).click();
+await page.getByLabel("실험 가설").fill("Weekly traffic increases");
+await page.getByRole("button", { name: "이번 주 기록 저장" }).click();
 await page
   .getByText("Weekly traffic increases", { exact: true })
   .last()
   .waitFor();
 assert.equal(weeks.length, 1);
-await page.getByLabel("Status for IPOScore").selectOption("SCALE");
+await page.getByLabel("IPOScore 사업 상태").selectOption("SCALE");
 await page.waitForTimeout(200);
 assert.equal(sites[0].status, "SCALE");
 await mkdir("test-results", { recursive: true });
@@ -268,68 +268,74 @@ await page.screenshot({
   path: "test-results/factory-desktop.png",
   fullPage: true,
 });
-await page.getByRole("link", { name: "Overview", exact: true }).click();
+await page.getByRole("link", { name: "전체 현황", exact: true }).click();
 await page.getByText("Build a portfolio that compounds.").waitFor();
 await page.getByText("Not Connected", { exact: true }).first().waitFor();
 await page.screenshot({
   path: "test-results/overview-desktop.png",
   fullPage: true,
 });
-await page.getByRole("link", { name: "Products", exact: true }).click();
+await page.getByRole("link", { name: "제품", exact: true }).click();
 await page.setViewportSize({ width: 390, height: 844 });
 await page.screenshot({
   path: "test-results/products-mobile.png",
   fullPage: true,
 });
-await page.getByRole("link", { name: "Ideas", exact: true }).click();
+await page.getByRole("link", { name: "아이디어", exact: true }).click();
 await page.getByRole("button", { name: "Delete", exact: true }).click();
 await page.getByRole("button", { name: "Confirm delete" }).click();
 await page.getByText("No ideas in this market yet.").waitFor();
 assert.equal(ideas.length, 0);
 await page.setViewportSize({ width: 1440, height: 1000 });
-await page.getByRole("link", { name: "Products", exact: true }).click();
+await page.getByRole("link", { name: "제품", exact: true }).click();
 await page.getByRole("link").filter({ hasText: "IPOScore" }).first().click();
-await page.getByRole("button", { name: "Launch", exact: true }).click();
-await page
-  .getByLabel("core_flow verification notes")
-  .fill("Verified synthetic fixture");
-await page.getByLabel("core_flow status").selectOption("ready");
-await page.getByRole("button", { name: "Save 핵심 기능", exact: true }).click();
+await page.getByRole("button", { name: "출시 준비", exact: true }).click();
+await page.getByLabel("핵심 기능 확인 내용").fill("Verified synthetic fixture");
+await page.getByLabel("핵심 기능 확인 상태").selectOption("ready");
+await page.getByRole("button", { name: "핵심 기능 저장", exact: true }).click();
 await page.getByText(/확인 시각/).waitFor();
 assert.equal(launchChecks[0].status, "ready");
-await page.getByRole("button", { name: "Work", exact: true }).click();
-await page.getByLabel("New task title").fill("Fix fixture measurement");
+await page.getByRole("button", { name: "작업 현황", exact: true }).click();
+await page.getByLabel("새 작업 제목").fill("Fix fixture measurement");
+await page.getByLabel("새 작업 상태").selectOption("doing");
+await page.getByLabel("우선순위").first().selectOption("high");
+await page.getByLabel("연결할 주의 월요일").first().fill("2026-11-11");
+await page.getByRole("button", { name: "개선 작업 추가", exact: true }).click();
 await page
-  .getByRole("button", { name: "Add improvement task", exact: true })
-  .click();
-await page.getByRole("heading", { name: "작업 편집", exact: true }).waitFor();
+  .locator("summary")
+  .filter({ hasText: "Fix fixture measurement" })
+  .waitFor();
 assert.equal(tasks.length, 1);
-await page.getByRole("button", { name: "Review", exact: true }).click();
-await page.getByLabel("target", { exact: true }).fill("250");
-await page
-  .getByRole("button", { name: "Save review goal", exact: true })
-  .click();
+assert.equal(tasks[0].status, "doing");
+assert.equal(tasks[0].priority, "high");
+assert.equal(tasks[0].week_start, "2026-11-09");
+await page.getByRole("button", { name: "평가", exact: true }).click();
+await page.getByLabel("목표 합계", { exact: true }).fill("250");
+await page.getByRole("button", { name: "평가 목표 저장", exact: true }).click();
 await page
   .getByRole("heading", { name: "평가 미리보기", exact: true })
   .waitFor();
-await page.getByText("INSUFFICIENT", { exact: true }).waitFor();
+await page.getByText("자료 부족", { exact: true }).waitFor();
 await page
-  .getByLabel("Review rationale")
+  .getByLabel("평가 판단 근거")
   .fill("Defer until real data is available");
-await page
-  .getByRole("button", { name: "Save evaluation record", exact: true })
-  .click();
+await page.getByRole("button", { name: "평가 기록 저장", exact: true }).click();
 await page.getByText(/운영자 판단:/).waitFor();
 assert.equal(reviews[0].observed, null);
+assert.equal(reviews[0].decision, "DEFER");
 assert.equal(sites[0].status, "SCALE");
 await page.screenshot({
   path: "test-results/review-desktop.png",
   fullPage: true,
 });
 await page.setViewportSize({ width: 390, height: 844 });
-await page.getByRole("button", { name: "Work", exact: true }).click();
+await page.getByRole("button", { name: "작업 현황", exact: true }).click();
+await page
+  .locator("summary")
+  .filter({ hasText: "Fix fixture measurement" })
+  .click();
 assert.equal(
-  await page.getByLabel(`Task title ${tasks[0].id}`).inputValue(),
+  await page.getByLabel(`작업 제목 ${tasks[0].id}`).inputValue(),
   "Fix fixture measurement",
 );
 await page.screenshot({ path: "test-results/work-mobile.png", fullPage: true });
@@ -341,19 +347,19 @@ assert.equal(
   "Product operations should fit the mobile viewport",
 );
 await page.setViewportSize({ width: 1440, height: 1000 });
-await page.getByRole("link", { name: "Factory", exact: true }).click();
+await page.getByRole("link", { name: "주간 관리", exact: true }).click();
 await page
-  .getByRole("button", { name: "Open weekly report", exact: true })
+  .getByRole("button", { name: "주간 보고서 열기", exact: true })
   .click();
 await page
-  .getByRole("button", { name: "Download weekly report", exact: true })
+  .getByRole("button", { name: "주간 보고서 내려받기", exact: true })
   .waitFor();
 const downloadPromise = page.waitForEvent("download");
 await page
-  .getByRole("button", { name: "Download weekly report", exact: true })
+  .getByRole("button", { name: "주간 보고서 내려받기", exact: true })
   .click();
 const download = await downloadPromise;
-assert.match(download.suggestedFilename(), /weekly\.txt$/);
+assert.match(download.suggestedFilename(), /주간보고서\.txt$/);
 await page.screenshot({
   path: "test-results/weekly-report-desktop.png",
   fullPage: true,

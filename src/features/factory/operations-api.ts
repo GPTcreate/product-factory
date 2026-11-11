@@ -1,6 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { fetchAllPages } from "@/lib/paginate";
+import {
+  operationsInvocationError,
+  operationsSaveError,
+} from "./operations-errors";
 import type { AnalyticsDaily, SearchDaily } from "@/types/database";
 import type {
   AdSenseDaily,
@@ -65,17 +69,9 @@ export function useOperationsMutation(siteId: string) {
         { body: input },
       );
       if (error) {
-        let message =
-          "Could not save. Check your admin session and connection.";
-        try {
-          const body = await (error as { context?: Response }).context?.json();
-          if (typeof body?.message === "string") message = body.message;
-        } catch {
-          /* safe fallback */
-        }
-        throw new Error(message);
+        throw new Error(await operationsInvocationError(error));
       }
-      if (!data?.ok) throw new Error("Changes were not saved.");
+      if (!data?.ok) throw new Error(operationsSaveError(data));
       return data.result;
     },
     onSuccess: () =>

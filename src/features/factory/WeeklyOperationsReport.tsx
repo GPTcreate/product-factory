@@ -9,6 +9,8 @@ import type { SiteWithStatuses } from "@/lib/api";
 import { computeHealth } from "@/lib/health";
 import { usePrivacyMode } from "@/lib/privacy";
 import { Button } from "@/components/ui/button";
+import { SOURCE_LABEL } from "@/lib/sources";
+import { TASK_STATUS_LABELS } from "./operations-labels";
 
 export function WeeklyOperationsReport({
   sites,
@@ -26,7 +28,7 @@ export function WeeklyOperationsReport({
         공급자별 보고 시간대 차이는 유지하며, 누락은 0으로 채우지 않습니다.
       </p>
       <Button variant="secondary" onClick={() => setView(!view)}>
-        {view ? "Close weekly report" : "Open weekly report"}
+        {view ? "주간 보고서 닫기" : "주간 보고서 열기"}
       </Button>
       {view &&
         sites.map((site) => (
@@ -40,10 +42,10 @@ function ProductWeek({ site, week }: { site: SiteWithStatuses; week: string }) {
   const range = weeklyRange(week);
   const metrics = useOperationsMetrics(site.id, range.previousStart, range.end);
   const operations = useProductOperations(site.id);
-  if (privacy.enabled) return <p>Hide all data is enabled.</p>;
+  if (privacy.enabled) return <p>전체 데이터 숨김이 켜져 있습니다.</p>;
   if (range.days === 0) return <p>이 주에는 아직 완료된 날짜가 없습니다.</p>;
   if (metrics.isLoading || operations.isLoading)
-    return <p role="status">Loading weekly report…</p>;
+    return <p role="status">주간 보고서를 불러오는 중…</p>;
   if (
     metrics.isError ||
     operations.isError ||
@@ -52,47 +54,47 @@ function ProductWeek({ site, week }: { site: SiteWithStatuses; week: string }) {
   )
     return (
       <div role="alert">
-        리포트 데이터 읽기 실패.{" "}
+        주간 보고서 자료를 불러오지 못했습니다.{" "}
         <Button
           onClick={() => {
             void metrics.refetch();
             void operations.refetch();
           }}
         >
-          Retry weekly report
+          주간 보고서 다시 확인
         </Button>
       </div>
     );
   const m = metrics.data;
   const series = [
     {
-      name: "Sessions",
+      name: "세션 수",
       rows: m.analytics.map((r) => ({
         metric_date: r.metric_date,
         value: r.sessions,
       })),
     },
     {
-      name: "Core action",
+      name: "핵심 행동 이벤트 수",
       rows: m.events.map((r) => ({
         metric_date: r.metric_date,
         value: r.event_count,
       })),
     },
     {
-      name: "Google clicks",
+      name: "Google 검색 클릭 수",
       rows: m.search
         .filter((r) => r.engine === "google")
         .map((r) => ({ metric_date: r.metric_date, value: r.clicks })),
     },
     {
-      name: "Bing clicks",
+      name: "Bing 검색 클릭 수",
       rows: m.search
         .filter((r) => r.engine === "bing")
         .map((r) => ({ metric_date: r.metric_date, value: r.clicks })),
     },
     {
-      name: "AdSense",
+      name: "AdSense 수익",
       rows: m.revenue.map((r) => ({
         metric_date: r.metric_date,
         value: Number(r.estimated_earnings),
@@ -131,22 +133,32 @@ function ProductWeek({ site, week }: { site: SiteWithStatuses; week: string }) {
     };
   });
   const tasks = operations.data.tasks.filter((t) => t.week_start === week);
-  const issues = site.statuses
-    .map((s) => ({ source: s.source, health: computeHealth(s) }))
-    .filter((s) => s.health.level !== "healthy");
+  const health = site.statuses.map((s) => ({
+    source: s.source,
+    health: computeHealth(s),
+  }));
+  const issues = health.filter((s) =>
+    ["warning", "critical", "pending"].includes(s.health.level),
+  );
+  const disabled = health.filter((s) => s.health.level === "disabled");
   const reportText = [
     `${site.product_code ?? ""} ${site.name}`,
-    `${range.start} → ${range.end} · ${range.days} completed days`,
+    `${range.start} → ${range.end} · 완료된 ${range.days}일`,
     ...summary.map(
       (s) =>
-        `${s.name}: ${s.current.value ?? "No Data"} ${s.current.currency ?? ""}; observed ${s.current.days}/${range.days} days; change ${s.change}`,
+        `${s.name}: ${s.current.mixed ? "혼합 통화" : (s.current.value ?? "자료 없음")} ${s.current.currency ?? ""}; 관측 ${s.current.days}/${range.days}일; 직전 주 대비 ${s.change}`,
     ),
-    ...issues.map((i) => `${i.source}: ${i.health.reason}`),
+    ...issues.map((i) => `${SOURCE_LABEL[i.source]}: ${i.health.reason}`),
+    ...(disabled.length
+      ? [
+          `비활성 연결: ${disabled.map((i) => SOURCE_LABEL[i.source]).join(" · ")}`,
+        ]
+      : []),
     ...tasks.map(
       (t) =>
-        `[${t.status}] ${t.title} / ${t.owner || "unassigned"} / ${t.due_date ?? "no due date"}`,
+        `[${TASK_STATUS_LABELS[t.status]}] ${t.title} / ${t.owner || "담당 미정"} / ${t.due_date ?? "기한 미정"}`,
     ),
-    "Next: resolve failed or missing feeds, complete linked tasks, then review goals.",
+    "다음: 조치 항목의 수집 상태와 연결 작업을 확인한 뒤 평가 목표를 검토하세요.",
   ].join("\n");
   const download = () => {
     const url = URL.createObjectURL(
@@ -154,7 +166,7 @@ function ProductWeek({ site, week }: { site: SiteWithStatuses; week: string }) {
     );
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${site.product_code ?? "product"}-${week}-weekly.txt`;
+    a.download = `${site.product_code ?? "제품"}-${week}-주간보고서.txt`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -186,7 +198,7 @@ function ProductWeek({ site, week }: { site: SiteWithStatuses; week: string }) {
                 <td>
                   {s.current.mixed
                     ? "혼합 통화"
-                    : (s.current.value ?? "No Data")}{" "}
+                    : (s.current.value ?? "자료 없음")}{" "}
                   {s.current.currency ?? ""}
                 </td>
                 <td>
@@ -199,36 +211,41 @@ function ProductWeek({ site, week }: { site: SiteWithStatuses; week: string }) {
         </table>
       </div>
       <p className="text-xs text-muted-foreground">
-        기간 고유 사용자 합계를 계산하지 않습니다. Core action의 빈 날짜는 0으로
-        간주하지 않습니다. 부분 관측에서는 증감률을 제시하지 않습니다.
+        기간 고유 사용자 합계를 계산하지 않습니다. 핵심 행동 이벤트의 빈 날짜는
+        0으로 간주하지 않습니다. 부분 관측에서는 증감률을 제시하지 않습니다.
       </p>
       <h3 className="font-medium">다음 행동</h3>
       <ul className="list-disc pl-5 text-sm">
         {issues.map((i) => (
           <li key={i.source}>
-            {i.source}: {i.health.reason}
+            {SOURCE_LABEL[i.source]}: {i.health.reason}
           </li>
         ))}
         <li>
-          제품의 Launch 체크와 Review 목표를 확인하고 미완료 작업을 처리하세요.
+          제품의 출시 준비 항목과 평가 목표를 확인하고 미완료 작업을 처리하세요.
         </li>
       </ul>
+      {disabled.length > 0 && (
+        <p className="text-xs text-muted-foreground">
+          비활성 연결: {disabled.map((i) => SOURCE_LABEL[i.source]).join(" · ")}
+        </p>
+      )}
       <h3 className="font-medium">이 주의 연결 작업</h3>
       {tasks.length ? (
         tasks.map((t) => (
           <p key={t.id}>
-            [{t.status}] {t.title} · {t.owner || "담당 미정"} ·{" "}
-            {t.due_date ?? "기한 미정"}
+            [{TASK_STATUS_LABELS[t.status]}] {t.title} ·{" "}
+            {t.owner || "담당 미정"} · {t.due_date ?? "기한 미정"}
           </p>
         ))
       ) : (
         <p>
-          이 주에 연결한 작업이 없습니다. 제품의 Work에서 월요일 날짜를
+          이 주에 연결한 작업이 없습니다. 제품의 작업 현황에서 월요일 날짜를
           지정하세요.
         </p>
       )}
       <Button variant="secondary" onClick={download}>
-        Download weekly report
+        주간 보고서 내려받기
       </Button>
     </article>
   );

@@ -333,7 +333,7 @@ export function SiteReportExportButton({ site }: { site: SiteWithStatuses }) {
         onClick={() => void handleExport()}
       >
         <Download className="h-3.5 w-3.5" aria-hidden />
-        Export PDF
+        PDF 내보내기
       </Button>
       {error && (
         <span className="max-w-[16rem] text-right text-xs text-critical">

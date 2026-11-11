@@ -1,6 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { fetchAllPages } from "@/lib/paginate";
+import {
+  operationsInvocationError,
+  operationsSaveError,
+} from "./operations-errors";
 import type {
   Idea,
   FactoryWeek,
@@ -63,19 +67,9 @@ export function useFactoryMutation() {
         { body },
       );
       if (error) {
-        let message =
-          "Could not save. Check your connection and admin session.";
-        try {
-          const payload = await (
-            error as { context?: Response }
-          ).context?.json();
-          message = payload?.message ?? message;
-        } catch {
-          /* keep safe fallback */
-        }
-        throw new Error(message);
+        throw new Error(await operationsInvocationError(error));
       }
-      if (!data?.ok) throw new Error("The request was not saved.");
+      if (!data?.ok) throw new Error(operationsSaveError(data));
       return data.result;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["factory"] }),
