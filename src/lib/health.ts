@@ -1,4 +1,5 @@
 import { formatDistanceStrict } from "date-fns";
+import { ko } from "date-fns/locale";
 import type { IntegrationStatus } from "@/types/database";
 
 export type HealthLevel =
@@ -31,11 +32,11 @@ const CRITICAL_ERROR_CODES = new Set([
 
 const HEALTHY: Pick<IntegrationHealth, "level" | "title"> = {
   level: "healthy",
-  title: "Healthy",
+  title: "정상",
 };
 
 function ago(date: Date, now: Date): string {
-  return formatDistanceStrict(date, now, { addSuffix: true });
+  return formatDistanceStrict(date, now, { addSuffix: true, locale: ko });
 }
 
 /**
@@ -58,8 +59,8 @@ export function computeHealth(
   if (!status.enabled) {
     return {
       level: "disabled",
-      title: "Disabled",
-      reason: "Integration is not configured.",
+      title: "비활성",
+      reason: "이 연동은 비활성화되어 있습니다.",
     };
   }
 
@@ -73,8 +74,8 @@ export function computeHealth(
   ) {
     return {
       level: "pending",
-      title: "Not synced yet",
-      reason: "Run a sync to pull the first data.",
+      title: "첫 수집 대기",
+      reason: "아직 수집한 이력이 없습니다. 첫 수집 결과를 확인하세요.",
     };
   }
 
@@ -94,29 +95,29 @@ export function computeHealth(
   ) {
     return {
       level: "critical",
-      title: "Critical",
-      reason: "Credentials or permissions need attention.",
+      title: "확인 필요",
+      reason: "인증 또는 접근 권한을 확인해 주세요.",
     };
   }
   if (fails >= 2) {
     return {
       level: "critical",
-      title: "Critical",
-      reason: `${fails} consecutive failures.`,
+      title: "확인 필요",
+      reason: `${fails}회 연속 수집에 실패했습니다.`,
     };
   }
   if (!lastSuccess) {
     return {
       level: "critical",
-      title: "Critical",
-      reason: "No successful sync yet.",
+      title: "확인 필요",
+      reason: "아직 정상 수집에 성공한 이력이 없습니다.",
     };
   }
   if (ageHours > stale * 2) {
     return {
       level: "critical",
-      title: "Critical",
-      reason: `Last success was ${ago(lastSuccess, now)} - well past the ${stale}h freshness window.`,
+      title: "확인 필요",
+      reason: `마지막 정상 수집은 ${ago(lastSuccess, now)}이며, 최신성 기준 ${stale}시간을 크게 넘겼습니다.`,
     };
   }
 
@@ -124,35 +125,35 @@ export function computeHealth(
   if (fails === 1) {
     return {
       level: "warning",
-      title: "Warning",
-      reason: `One recent failure; last success was ${ago(lastSuccess, now)}.`,
+      title: "주의",
+      reason: `최근 수집이 한 번 실패했습니다. 마지막 정상 수집은 ${ago(lastSuccess, now)}입니다.`,
     };
   }
   if (status.last_status === "partial") {
     return {
       level: "warning",
-      title: "Warning",
-      reason: "Latest sync only partially completed.",
+      title: "주의",
+      reason: "최근 수집이 일부만 완료되었습니다.",
     };
   }
   if (ageHours > stale) {
     return {
       level: "warning",
-      title: "Warning",
-      reason: `Data is older than the ${stale}h freshness window.`,
+      title: "주의",
+      reason: `마지막 정상 수집이 최신성 기준 ${stale}시간을 넘겼습니다.`,
     };
   }
   if (status.last_status === "failed") {
     return {
       level: "warning",
-      title: "Warning",
-      reason: `Latest attempt failed; last success was ${ago(lastSuccess, now)}.`,
+      title: "주의",
+      reason: `최근 수집에 실패했습니다. 마지막 정상 수집은 ${ago(lastSuccess, now)}입니다.`,
     };
   }
 
   // ---- Healthy ------------------------------------------------------------
   return {
     ...HEALTHY,
-    reason: `Last success ${ago(lastSuccess, now)}.`,
+    reason: `마지막 정상 수집 ${ago(lastSuccess, now)}.`,
   };
 }

@@ -2,6 +2,10 @@ import { AnalyticsDetail } from "@/features/factory/AnalyticsDetail";
 import { RevenuePanel } from "@/features/factory/RevenuePanel";
 import { ConnectionDiagnostics } from "./ConnectionDiagnostics";
 import { ProductOperations } from "@/features/factory/ProductOperations";
+import {
+  PRODUCT_DETAIL_TAB_LABELS,
+  PRODUCT_STATUS_LABELS,
+} from "@/features/factory/operations-labels";
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ExternalLink, Pencil } from "lucide-react";
@@ -84,6 +88,7 @@ export function SiteDetailPage() {
   const [days, setDays] = useState<number>(30);
   const [editing, setEditing] = useState(false);
   const [tab, setTab] = useState("Overview");
+  const operationalTab = tab === "Launch" || tab === "Work" || tab === "Review";
 
   const siteQuery = useSite(siteId);
   const metricsQuery = useSiteMetrics(siteId, days);
@@ -133,13 +138,13 @@ export function SiteDetailPage() {
             disabled={privacy.enabled}
             title={
               privacy.enabled
-                ? "Turn off Hide all data to edit site settings."
+                ? "제품 설정을 편집하려면 전체 데이터 숨김을 해제하세요."
                 : undefined
             }
             onClick={() => setEditing(true)}
           >
             <Pencil className="h-3.5 w-3.5" aria-hidden />
-            Edit
+            제품 편집
           </Button>
           <RangeSelector days={days} onChange={setDays} />
         </div>
@@ -154,49 +159,54 @@ export function SiteDetailPage() {
         />
       )}
 
-      <ConnectionDiagnostics site={site} days={days} />
+      {!operationalTab && (
+        <>
+          <ConnectionDiagnostics site={site} days={days} />
 
-      {/* Integration health */}
-      <div className="grid gap-3 sm:grid-cols-3">
-        {site.statuses.map((status) => {
-          const health = computeHealth(status, now);
-          return (
-            <Card key={status.source}>
-              <CardContent className="space-y-2 p-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">
-                    {SOURCE_LABEL[status.source]}
-                  </span>
-                  <HealthBadge health={health} />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {privacy.enabled ? "********" : health.reason}
-                </p>
-                <p
-                  className="text-xs text-muted-foreground"
-                  title={
-                    privacy.enabled
-                      ? "********"
-                      : absoluteTime(status.last_success_at)
-                  }
-                >
-                  Last success{" "}
-                  {privacy.enabled
-                    ? "********"
-                    : relativeTime(status.last_success_at)}
-                </p>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+          {/* Integration health */}
+          <div className="grid gap-3 sm:grid-cols-3">
+            {site.statuses.map((status) => {
+              const health = computeHealth(status, now);
+              return (
+                <Card key={status.source}>
+                  <CardContent className="space-y-2 p-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">
+                        {SOURCE_LABEL[status.source]}
+                      </span>
+                      <HealthBadge health={health} />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {privacy.enabled ? "********" : health.reason}
+                    </p>
+                    <p
+                      className="text-xs text-muted-foreground"
+                      title={
+                        privacy.enabled
+                          ? "********"
+                          : absoluteTime(status.last_success_at)
+                      }
+                    >
+                      Last success{" "}
+                      {privacy.enabled
+                        ? "********"
+                        : relativeTime(status.last_success_at)}
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </>
+      )}
 
       <p className="text-sm text-muted-foreground">
-        {site.product_code} · {site.market} · {site.primary_language} · Level{" "}
-        {site.level ?? 1} · v{site.version ?? "1.0"} · {site.status ?? "LIVE"}
+        {site.product_code} · {site.market} · {site.primary_language} · 단계{" "}
+        {site.level ?? 1} · v{site.version ?? "1.0"} ·{" "}
+        {PRODUCT_STATUS_LABELS[site.status ?? "LIVE"]}
       </p>
       <nav
-        aria-label="Product detail"
+        aria-label="제품 상세 탭"
         className="flex gap-2 overflow-x-auto border-b pb-3"
       >
         {[
@@ -213,15 +223,16 @@ export function SiteDetailPage() {
           <Button
             key={v}
             size="sm"
+            className="shrink-0 whitespace-nowrap"
             variant={v === tab ? "primary" : "ghost"}
             onClick={() => setTab(v)}
           >
-            {v}
+            {PRODUCT_DETAIL_TAB_LABELS[v]}
           </Button>
         ))}
       </nav>
       {(tab === "Launch" || tab === "Work" || tab === "Review") && (
-        <ProductOperations site={site} section={tab} />
+        <ProductOperations key={site.id} site={site} section={tab} />
       )}
       {(tab === "Overview" || tab === "Revenue") && (
         <RevenuePanel days={days} products={[site]} productId={site.id} />
@@ -276,18 +287,20 @@ export function SiteDetailPage() {
         <SearchTermsSection siteId={siteId} days={days} />
       </div>
       {/* Recent runs */}
-      <section className="space-y-3">
-        <h2 className="text-sm font-semibold">Recent sync runs</h2>
-        {runsQuery.isLoading ? (
-          <Skeleton className="h-40" />
-        ) : runsQuery.isError ? (
-          <ErrorState onRetry={() => void runsQuery.refetch()} />
-        ) : runsQuery.data && runsQuery.data.length > 0 ? (
-          <SyncRunsTable runs={runsQuery.data} hideSite />
-        ) : (
-          <EmptyState title="No sync runs yet" />
-        )}
-      </section>
+      {!operationalTab && (
+        <section className="space-y-3">
+          <h2 className="text-sm font-semibold">Recent sync runs</h2>
+          {runsQuery.isLoading ? (
+            <Skeleton className="h-40" />
+          ) : runsQuery.isError ? (
+            <ErrorState onRetry={() => void runsQuery.refetch()} />
+          ) : runsQuery.data && runsQuery.data.length > 0 ? (
+            <SyncRunsTable runs={runsQuery.data} hideSite />
+          ) : (
+            <EmptyState title="No sync runs yet" />
+          )}
+        </section>
+      )}
     </div>
   );
 }

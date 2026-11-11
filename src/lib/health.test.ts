@@ -91,7 +91,7 @@ describe("computeHealth", () => {
       NOW,
     );
     expect(result.level).toBe("pending");
-    expect(result.title).toBe("Not synced yet");
+    expect(result.title).toBe("첫 수집 대기");
   });
 
   it("is critical when there has never been a success", () => {

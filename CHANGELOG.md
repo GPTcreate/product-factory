@@ -6,6 +6,16 @@ This project doesn't yet cut formal GitHub Releases or git tags - version number
 
 ## [Unreleased]
 
+### Changed
+
+- 작업 현황·출시 준비·평가·주간 관리의 메뉴, 상태, 우선순위, 저장 안내와 주간 보고서를 한글화했습니다. 저장된 상태 코드와 기존 API 계약은 유지합니다.
+- 저장된 작업은 제목·상태·기한을 요약해 접어 보여주고, 운영 관리 탭에서는 작업과 무관한 분석 패널을 숨깁니다. 비활성 연결은 주간 조치 항목과 구분합니다.
+
+### Fixed
+
+- 캐시된 제품 전환 뒤 이전 제품에 작업이 저장될 수 있던 편집 상태 재사용을 수정했습니다. 저장 후 다시 편집하면 이전 성공 안내를 지우고, 저장 중에는 입력을 잠가 새 초안 손실을 막습니다.
+- 작업에 연결할 주를 월요일로 정규화하고 저장 실패·인증·검증 안내를 한글로 표시합니다.
+
 ### Added
 
 - Public introduction, privacy and usage pages for the personal Google data collector, linked from sign-in. Dashboard authorization remains unchanged.
