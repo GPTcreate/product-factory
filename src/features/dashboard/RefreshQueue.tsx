@@ -26,7 +26,7 @@ function shortPath(url: string): string {
 }
 
 /**
- * Content refresh queue: pages across the portfolio whose Google clicks
+ * 콘텐츠 개선 후보: pages across the portfolio whose Google clicks
  * dropped ≥25% versus their own prior 28 days - the highest-ROI list for a
  * publisher deciding what to update next.
  */
@@ -53,12 +53,11 @@ export function RefreshQueue({
 
   return (
     <section className="space-y-2">
-      <h2 className="text-sm font-semibold">Content refresh queue</h2>
+      <h2 className="text-sm font-semibold">콘텐츠 개선 후보</h2>
       {decays.length === 0 ? (
         <Card className="flex items-center gap-3 p-4 text-sm text-muted-foreground">
           <FileWarning className="h-4 w-4" aria-hidden />
-          No decaying pages right now - nothing lost ≥25% of its clicks versus
-          the prior {WINDOW_DAYS} days.
+          직전 {WINDOW_DAYS}일보다 클릭 수가 25% 이상 감소한 페이지가 없습니다.
         </Card>
       ) : (
         <Card>
@@ -66,11 +65,13 @@ export function RefreshQueue({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                  <th className="px-3 py-2 font-medium">Page</th>
-                  <th className="px-2 py-2 font-medium">Site</th>
-                  <th className="px-2 py-2 text-right font-medium">Clicks</th>
-                  <th className="px-2 py-2 text-right font-medium">Change</th>
-                  <th className="px-2 py-2 text-right font-medium">Pos.</th>
+                  <th className="px-3 py-2 font-medium">페이지</th>
+                  <th className="px-2 py-2 font-medium">제품</th>
+                  <th className="px-2 py-2 text-right font-medium">클릭 수</th>
+                  <th className="px-2 py-2 text-right font-medium">증감률</th>
+                  <th className="px-2 py-2 text-right font-medium">
+                    평균 순위
+                  </th>
                 </tr>
               </thead>
               <tbody>

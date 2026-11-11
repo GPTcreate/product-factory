@@ -23,8 +23,8 @@ describe("manual Sync fixture regression", () => {
   });
   it("only permits enabled sources and submits the selected source", () => {
     render(<ManualSyncButtons site={site} />);
-    expect(screen.getByRole("button", { name: "Run GSC" })).toBeDisabled();
-    fireEvent.click(screen.getByRole("button", { name: "Run GA4" }));
+    expect(screen.getByRole("button", { name: "GSC 수집" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "GA4 수집" }));
     expect(mutation.mutate).toHaveBeenCalledWith("ga4", expect.any(Object));
   });
   it("shows zero rows without exposing provider detail", () => {
@@ -34,17 +34,17 @@ describe("manual Sync fixture regression", () => {
       ]),
     );
     render(<ManualSyncButtons site={site} />);
-    fireEvent.click(screen.getByRole("button", { name: "Run all enabled" }));
-    expect(
-      screen.getByText("Sync complete - 0 rows written."),
-    ).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: "활성 소스 모두 수집" }),
+    );
+    expect(screen.getByText("수집 완료 · 0행 저장")).toBeInTheDocument();
   });
   it("reports a running conflict and prevents concurrent submissions", () => {
     mutation.isPending = true;
     mutation.variables = "ga4";
     render(<ManualSyncButtons site={site} />);
     expect(
-      screen.getByRole("button", { name: "Run all enabled" }),
+      screen.getByRole("button", { name: "활성 소스 모두 수집" }),
     ).toBeDisabled();
   });
   it("shows safe authorization feedback", () => {
@@ -54,8 +54,10 @@ describe("manual Sync fixture regression", () => {
       ),
     );
     render(<ManualSyncButtons site={site} />);
-    fireEvent.click(screen.getByRole("button", { name: "Run GA4" }));
-    expect(screen.getByText(/MFA-verified admin session/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "GA4 수집" }));
+    expect(
+      screen.getByText(/2단계 인증을 완료한 관리자 로그인/),
+    ).toBeInTheDocument();
     expect(
       screen.queryByText("synthetic-provider-detail"),
     ).not.toBeInTheDocument();

@@ -27,7 +27,7 @@ export function TrajectorySection({
 
   return (
     <TrajectoryPanel
-      title={`Trajectory · next ${HORIZON_DAYS} days`}
+      title={`향후 추이 예측 · ${HORIZON_DAYS}일`}
       trajectories={trajectories}
       horizonDays={HORIZON_DAYS}
       maskPrefix={`traj:${siteId}`}

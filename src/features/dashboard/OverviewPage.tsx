@@ -40,9 +40,9 @@ export function OverviewPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold">Portfolio overview</h1>
+          <h1 className="text-xl font-semibold">전체 현황</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Traffic, search performance, and what needs your attention.
+            방문·검색 성과와 확인이 필요한 항목을 살펴보세요.
           </p>
         </div>
         <RangeSelector days={days} onChange={setDays} />
@@ -62,8 +62,8 @@ export function OverviewPage() {
         <ErrorState onRetry={() => void insights.refetch()} />
       ) : insights.data.sites.length === 0 ? (
         <EmptyState
-          title="No active sites yet"
-          description="Add a site to start seeing portfolio insights."
+          title="활성화된 제품이 없습니다"
+          description="제품을 등록하면 전체 성과와 개선 항목을 확인할 수 있습니다."
         />
       ) : (
         <>
@@ -78,9 +78,7 @@ export function OverviewPage() {
                         "overview:attention",
                       )
                     : insights.data.health.attention}{" "}
-                  integration
-                  {insights.data.health.attention === 1 ? "" : "s"} need
-                  attention
+                  개 연결 확인 필요
                 </span>
                 {insights.data.health.critical > 0 && (
                   <span className="text-muted-foreground">
@@ -92,7 +90,7 @@ export function OverviewPage() {
                           "overview:critical",
                         )
                       : insights.data.health.critical}{" "}
-                    critical
+                    개 긴급
                   </span>
                 )}
               </div>
@@ -133,9 +131,7 @@ export function OverviewPage() {
           <RefreshQueue sites={insights.data.sitesWithStatuses} />
 
           <section className="space-y-2">
-            <h2 className="text-sm font-semibold">
-              All sites · last {days} days
-            </h2>
+            <h2 className="text-sm font-semibold">전체 제품 · 최근 {days}일</h2>
             <ComparisonTable
               sites={insights.data.sites}
               missing={
@@ -152,7 +148,7 @@ export function OverviewPage() {
 
       {/* Sync health - sourced from the same insights query (no extra fetch) */}
       <section className="space-y-2">
-        <h2 className="text-sm font-semibold">Integration health</h2>
+        <h2 className="text-sm font-semibold">연결 상태</h2>
         {insights.isLoading ? (
           <Skeleton className="h-32" />
         ) : insights.isError || !insights.data ? (
@@ -163,16 +159,14 @@ export function OverviewPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                    <th className="px-4 py-3 font-medium">Website</th>
+                    <th className="px-4 py-3 font-medium">제품</th>
                     {SOURCES.map((s) => (
                       <th key={s} className="px-3 py-3 text-center font-medium">
                         {SOURCE_SHORT[s]}
                       </th>
                     ))}
-                    <th className="px-4 py-3 font-medium">
-                      Last successful sync
-                    </th>
-                    <th className="px-4 py-3 text-right font-medium">Detail</th>
+                    <th className="px-4 py-3 font-medium">마지막 정상 수집</th>
+                    <th className="px-4 py-3 text-right font-medium">상세</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -224,7 +218,7 @@ function HealthRow({ site }: { site: SiteWithStatuses }) {
           to={`/sites/${site.id}`}
           className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
         >
-          Open <ArrowRight className="h-3 w-3" />
+          열기 <ArrowRight className="h-3 w-3" />
         </Link>
       </td>
     </tr>
@@ -278,7 +272,7 @@ function RangeSelector({
               : "text-muted-foreground hover:text-foreground",
           )}
         >
-          {r}d
+          {r}일
         </button>
       ))}
     </div>

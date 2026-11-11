@@ -16,8 +16,8 @@ export function PrivacyModeToggle() {
       )}
     >
       <EyeOff className="h-4 w-4" aria-hidden />
-      Hide all data
-      {privacy.enabled && <span className="ml-auto text-xs">On</span>}
+      전체 데이터 숨김
+      {privacy.enabled && <span className="ml-auto text-xs">켜짐</span>}
     </button>
   );
 }

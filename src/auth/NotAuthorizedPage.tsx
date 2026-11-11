@@ -9,12 +9,11 @@ import { Button } from "@/components/ui/button";
 export function NotAuthorizedPage() {
   const { user, signOut } = useAuth();
   return (
-    <AuthShell title="Access not authorized">
+    <AuthShell title="접근 권한이 없습니다">
       <p className="text-sm text-muted-foreground">
-        The account{" "}
-        <span className="font-medium text-foreground">{user?.email}</span> is
-        signed in and MFA-verified, but it is not authorized to view this
-        portfolio. Contact the portfolio owner if you believe this is a mistake.
+        계정 <span className="font-medium text-foreground">{user?.email}</span>
+        은(는) 로그인과 2단계 인증을 완료했지만 이 포트폴리오를 볼 권한이
+        없습니다. 권한이 필요하면 포트폴리오 관리자에게 문의하세요.
       </p>
       <div className="mt-4">
         <Button
@@ -22,7 +21,7 @@ export function NotAuthorizedPage() {
           className="w-full"
           onClick={() => void signOut()}
         >
-          Sign out
+          로그아웃
         </Button>
       </div>
     </AuthShell>

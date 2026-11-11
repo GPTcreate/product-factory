@@ -24,19 +24,19 @@ export function InsightsFeed({ insights }: { insights: Insight[] }) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Action items</CardTitle>
+        <CardTitle>조치할 항목</CardTitle>
         <span className="text-xs text-muted-foreground">
           {privacy.enabled
             ? privacy.maskNumber(insights.length, "insights:count")
             : insights.length}{" "}
-          insight{insights.length === 1 ? "" : "s"}
+          개 항목
         </span>
       </CardHeader>
       <CardContent>
         {insights.length === 0 ? (
           <div className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
             <CheckCircle2 className="h-4 w-4 text-success" />
-            Nothing needs attention - everything looks healthy.
+            현재 확인이 필요한 항목이 없습니다.
           </div>
         ) : (
           <ul className="space-y-3">
@@ -69,7 +69,7 @@ export function InsightsFeed({ insights }: { insights: Insight[] }) {
                             to={`/sites/${insight.siteId}`}
                             className="ml-1 text-primary hover:underline"
                           >
-                            View site
+                            제품 보기
                           </Link>
                         )}
                       </p>

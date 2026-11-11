@@ -8,11 +8,13 @@ import { z } from "zod";
  * Supabase secret key, Google secret, refresh token, or Bing key in the client.
  */
 const envSchema = z.object({
-  VITE_SUPABASE_URL: z.string().url("VITE_SUPABASE_URL must be a valid URL"),
+  VITE_SUPABASE_URL: z
+    .string()
+    .url("VITE_SUPABASE_URL에 올바른 주소를 설정해 주세요."),
   VITE_SUPABASE_PUBLISHABLE_KEY: z
     .string()
-    .min(1, "VITE_SUPABASE_PUBLISHABLE_KEY is required"),
-  VITE_APP_URL: z.string().url("VITE_APP_URL must be a valid URL"),
+    .min(1, "VITE_SUPABASE_PUBLISHABLE_KEY 설정이 필요합니다."),
+  VITE_APP_URL: z.string().url("VITE_APP_URL에 올바른 주소를 설정해 주세요."),
   // Your Supabase plan's database-size limit, in megabytes, used to draw the
   // usage gauge on the System page. Free = 500, Pro = 8192. Optional.
   VITE_DB_SIZE_LIMIT_MB: z.coerce.number().positive().default(500),
@@ -25,8 +27,8 @@ if (!parsed.success) {
     .map((issue) => `  - ${issue.path.join(".")}: ${issue.message}`)
     .join("\n");
   throw new Error(
-    `Invalid or missing frontend environment configuration.\n` +
-      `Copy .env.example to .env.local and provide the required values.\n${issues}`,
+    `화면 실행에 필요한 환경 설정이 없거나 올바르지 않습니다.\n` +
+      `.env.example을 .env.local로 복사한 뒤 필요한 값을 설정해 주세요.\n${issues}`,
   );
 }
 

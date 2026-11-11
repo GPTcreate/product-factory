@@ -3,6 +3,7 @@ import { ChevronDown, Download, FileJson, Table } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Spinner } from "@/components/ui/spinner";
 import { usePrivacyMode } from "@/lib/privacy";
+import { readableError } from "@/lib/ui-errors";
 
 type ExportFormat = "json" | "csv";
 type TableMap = Record<string, unknown[]>;
@@ -77,8 +78,7 @@ async function downloadCsvZip(name: string, tables: TableMap) {
 }
 
 function messageFor(error: unknown): string {
-  if (error instanceof Error) return error.message;
-  return "Could not export data.";
+  return readableError(error, "데이터를 내보내지 못했습니다. 다시 시도하세요.");
 }
 
 function hashText(value: string): string {
@@ -203,7 +203,7 @@ export function ExportAllDataButton() {
         ) : (
           <Download className="h-4 w-4" aria-hidden />
         )}
-        {exporting ? "Exporting data" : "Export all data"}
+        {exporting ? "데이터 내보내는 중" : "전체 데이터 내보내기"}
         {!exporting && <ChevronDown className="ml-auto h-3.5 w-3.5" />}
       </button>
       {open && (
@@ -211,14 +211,14 @@ export function ExportAllDataButton() {
           <FormatButton
             icon={FileJson}
             label="JSON"
-            description="Every table plus forecasts & insights - good for AI agents"
+            description="모든 표와 예측·분석 포함 · AI 에이전트용"
             loading={exporting && format === "json"}
             onClick={() => void handleExport("json")}
           />
           <FormatButton
             icon={Table}
-            label="CSV zip"
-            description="One CSV file per table"
+            label="CSV 압축파일"
+            description="표마다 CSV 파일 하나씩 저장"
             loading={exporting && format === "csv"}
             onClick={() => void handleExport("csv")}
           />

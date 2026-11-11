@@ -46,7 +46,9 @@ export function MfaSetupPage() {
           friendlyName: `Authenticator ${new Date().toISOString()}`,
         });
         if (error || !data) {
-          setEnrollError("Could not start MFA setup. Please try again.");
+          setEnrollError(
+            "2단계 인증 설정을 시작하지 못했습니다. 다시 시도하세요.",
+          );
           return;
         }
         setEnroll({
@@ -55,7 +57,9 @@ export function MfaSetupPage() {
           secret: data.totp.secret,
         });
       } catch {
-        setEnrollError("Could not start MFA setup. Please try again.");
+        setEnrollError(
+          "2단계 인증 설정을 시작하지 못했습니다. 다시 시도하세요.",
+        );
       }
     })();
   }, []);
@@ -66,7 +70,7 @@ export function MfaSetupPage() {
     setVerifyError(null);
 
     if (!/^\d{6}$/.test(code)) {
-      setVerifyError("Enter the 6-digit code from your authenticator app.");
+      setVerifyError("인증 앱의 6자리 코드를 입력하세요.");
       return;
     }
 
@@ -75,7 +79,7 @@ export function MfaSetupPage() {
       const { data: challenge, error: challengeError } =
         await supabase.auth.mfa.challenge({ factorId: enroll.factorId });
       if (challengeError || !challenge) {
-        setVerifyError("Could not start verification. Please try again.");
+        setVerifyError("인증을 시작하지 못했습니다. 다시 시도해 주세요.");
         return;
       }
       const { error: verifyErr } = await supabase.auth.mfa.verify({
@@ -84,7 +88,7 @@ export function MfaSetupPage() {
         code,
       });
       if (verifyErr) {
-        setVerifyError("That code didn't match. Please try again.");
+        setVerifyError("인증 코드가 일치하지 않습니다. 다시 시도하세요.");
         return;
       }
       await refresh(); // session is now aal2
@@ -96,14 +100,14 @@ export function MfaSetupPage() {
 
   return (
     <AuthShell
-      title="Set up two-factor authentication"
-      subtitle="Scan the QR code with an authenticator app, then enter the 6-digit code"
+      title="2단계 인증 설정"
+      subtitle="인증 앱으로 QR 코드를 스캔한 뒤 6자리 코드를 입력하세요."
     >
       {enrollError && <Alert tone="error">{enrollError}</Alert>}
 
       {!enroll && !enrollError && (
         <div className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
-          <Spinner /> Preparing your secret…
+          <Spinner /> 인증 정보 준비 중…
         </div>
       )}
 
@@ -112,13 +116,15 @@ export function MfaSetupPage() {
           <div className="flex justify-center">
             <img
               src={enroll.qrCode}
-              alt="TOTP QR code"
+              alt="인증 앱 등록용 QR 코드"
               className="h-44 w-44 rounded-md border border-border bg-white p-2"
             />
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="secret">Can't scan? Enter this code manually</Label>
+            <Label htmlFor="secret">
+              스캔할 수 없다면 이 코드를 직접 입력하세요.
+            </Label>
             <Input
               id="secret"
               readOnly
@@ -129,7 +135,7 @@ export function MfaSetupPage() {
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="code">6-digit code</Label>
+            <Label htmlFor="code">6자리 인증 코드</Label>
             <Input
               id="code"
               inputMode="numeric"
@@ -148,7 +154,7 @@ export function MfaSetupPage() {
           </div>
 
           <Button type="submit" className="w-full" loading={verifying}>
-            Verify and continue
+            인증하고 계속하기
           </Button>
         </form>
       )}
@@ -159,7 +165,7 @@ export function MfaSetupPage() {
           onClick={() => void signOut()}
           className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
         >
-          Sign out
+          로그아웃
         </button>
       </div>
     </AuthShell>

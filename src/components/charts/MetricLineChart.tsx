@@ -13,6 +13,19 @@ import { formatNumber } from "@/lib/format";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LineChart as LineChartIcon } from "lucide-react";
 
+const SERIES_LABELS: Record<string, string> = {
+  "Active users": "활성 사용자 수",
+  "Total users": "전체 사용자 수",
+  Sessions: "세션 수",
+  "Page views": "페이지 조회 수",
+  "Engaged sessions": "참여 세션 수",
+  "Google clicks": "Google 검색 클릭 수",
+  "Google impressions": "Google 검색 노출 수",
+  "Bing clicks": "Bing 검색 클릭 수",
+  "Bing impressions": "Bing 검색 노출 수",
+  Forecast: "예측",
+};
+
 export interface ChartSeries {
   key: string;
   name: string;
@@ -53,8 +66,8 @@ export function MetricLineChart({
     return (
       <EmptyState
         icon={LineChartIcon}
-        title="No data for this period"
-        description="Once a sync stores metrics for these dates, the chart will appear here."
+        title="이 기간의 자료가 없습니다"
+        description="선택한 기간의 지표가 수집되면 그래프가 표시됩니다."
       />
     );
   }
@@ -102,7 +115,7 @@ export function MetricLineChart({
           {bandKey && (
             <Area
               dataKey={bandKey}
-              name="Forecast range"
+              name="예측 범위"
               stroke="none"
               fill={bandColor ?? "hsl(var(--primary))"}
               fillOpacity={0.12}
@@ -117,7 +130,7 @@ export function MetricLineChart({
               key={s.key}
               type="monotone"
               dataKey={s.key}
-              name={s.name}
+              name={SERIES_LABELS[s.name] ?? s.name}
               stroke={s.color}
               strokeWidth={2}
               strokeDasharray={s.dashed ? "5 4" : undefined}

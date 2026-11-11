@@ -31,21 +31,21 @@ describe("SiteFormDialog backdrop dismissal", () => {
     const { onClose, backdrop } = renderDialog();
     // Simulate selecting text in a field, then releasing the mouse outside the
     // dialog: the browser fires the click on the backdrop (common ancestor).
-    fireEvent.mouseDown(screen.getByPlaceholderText("Example Blog"));
+    fireEvent.mouseDown(screen.getByPlaceholderText("예시 블로그"));
     fireEvent.click(backdrop);
     expect(onClose).not.toHaveBeenCalled();
   });
 
   it("does NOT close when clicking inside the dialog", () => {
     const { onClose } = renderDialog();
-    fireEvent.mouseDown(screen.getByPlaceholderText("Example Blog"));
-    fireEvent.click(screen.getByPlaceholderText("Example Blog"));
+    fireEvent.mouseDown(screen.getByPlaceholderText("예시 블로그"));
+    fireEvent.click(screen.getByPlaceholderText("예시 블로그"));
     expect(onClose).not.toHaveBeenCalled();
   });
 
   it("still closes via the explicit Close button", () => {
     const { onClose } = renderDialog();
-    fireEvent.click(screen.getByLabelText("Close"));
+    fireEvent.click(screen.getByLabelText("닫기"));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

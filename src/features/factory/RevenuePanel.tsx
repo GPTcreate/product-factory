@@ -15,7 +15,9 @@ export function RevenuePanel({
   const query = useRevenue(days, productId),
     privacy = usePrivacyMode();
   if (query.isLoading)
-    return <section className="factory-panel">Loading revenue…</section>;
+    return (
+      <section className="factory-panel">수익 자료를 불러오는 중…</section>
+    );
   if (query.isError) return <ErrorState onRetry={() => void query.refetch()} />;
   const rows = query.data ?? [],
     summary = revenueSummary(rows);
@@ -32,21 +34,21 @@ export function RevenuePanel({
   return (
     <section className="factory-panel space-y-4" id="revenue">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="font-semibold">Ad revenue · last {days} days</h2>
+        <h2 className="font-semibold">광고 수익 · 최근 {days}일</h2>
         <span className="text-xs text-muted-foreground">
-          Estimated earnings · AdSense account timezone
+          예상 수익 · AdSense 계정 시간대 기준
         </span>
       </div>
       {summary.mixedCurrency && (
         <p role="alert" className="text-critical">
-          Multiple currencies detected. Combined earnings and RPM are
-          unavailable.
+          통화가 여러 종류여서 총수익과 1,000회 조회당 수익을 합산할 수
+          없습니다.
         </p>
       )}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {[
           [
-            "Earnings",
+            "수익",
             metricState(
               connected || rows.length > 0,
               summary.hasData,
@@ -54,13 +56,13 @@ export function RevenuePanel({
             ),
           ],
           [
-            "Page RPM",
+            "1,000회 조회당 수익",
             summary.rpm === null
-              ? "No Data"
+              ? "자료 없음"
               : money(summary.rpm, summary.currency),
           ],
           [
-            "Ad clicks",
+            "광고 클릭 수",
             metricState(
               connected || rows.length > 0,
               summary.hasData,
@@ -68,7 +70,7 @@ export function RevenuePanel({
             ),
           ],
           [
-            "Ad impressions",
+            "광고 노출 수",
             metricState(
               connected || rows.length > 0,
               summary.hasData,
@@ -79,34 +81,34 @@ export function RevenuePanel({
           <div key={label}>
             <p className="text-xs text-muted-foreground">{label}</p>
             <p className="mt-1 text-xl font-semibold">
-              {display(!connected && !rows.length ? "Not Connected" : v)}
+              {display(!connected && !rows.length ? "연결 안 됨" : v)}
             </p>
           </div>
         ))}
       </div>
       {!connected && !rows.length && (
         <p className="text-sm text-muted-foreground">
-          Add the verified AdSense site domain in product settings, then connect
-          OAuth and run a sync.
+          제품 설정에 확인된 AdSense 사이트 도메인을 입력하고 계정을 연결한 뒤
+          수집을 실행하세요.
         </p>
       )}
       {connected && !rows.length && (
         <p className="text-sm text-muted-foreground">
-          No stored report rows yet. Check sync history; this does not mean zero
-          revenue.
+          아직 저장된 보고서 자료가 없습니다. 수집 이력을 확인하세요. 자료가
+          없다는 것은 수익이 0이라는 뜻이 아닙니다.
         </p>
       )}
       <div className="overflow-x-auto">
         <table className="factory-table">
           <thead>
             <tr>
-              <th>Product</th>
-              <th>Earnings</th>
-              <th>Page views</th>
-              <th>Clicks</th>
-              <th>Page CTR</th>
-              <th>Page RPM</th>
-              <th>Coverage</th>
+              <th>제품</th>
+              <th>수익</th>
+              <th>페이지 조회 수</th>
+              <th>클릭 수</th>
+              <th>페이지 클릭률</th>
+              <th>1,000회 조회당 수익</th>
+              <th>광고 게재 비율</th>
             </tr>
           </thead>
           <tbody>
@@ -116,7 +118,7 @@ export function RevenuePanel({
                   {privacy.maskText(`${p.product_code ?? ""} ${p.name}`)}
                   {!p.adsense_enabled && s.hasData && (
                     <span className="ml-2 text-xs text-muted-foreground">
-                      Historical · disconnected
+                      과거 자료 · 현재 연결 해제
                     </span>
                   )}
                 </td>
@@ -154,17 +156,17 @@ export function RevenuePanel({
       {productId && rows.length > 0 && (
         <details>
           <summary className="cursor-pointer text-sm text-primary">
-            Daily report ({rows.length} days)
+            일별 보고서 ({rows.length}일)
           </summary>
           <div className="mt-3 max-h-80 overflow-auto">
             <table className="factory-table">
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Earnings</th>
-                  <th>Views</th>
-                  <th>Clicks</th>
-                  <th>Ad requests</th>
+                  <th>날짜</th>
+                  <th>수익</th>
+                  <th>조회 수</th>
+                  <th>클릭 수</th>
+                  <th>광고 요청 수</th>
                 </tr>
               </thead>
               <tbody>
@@ -185,8 +187,9 @@ export function RevenuePanel({
         </details>
       )}
       <p className="text-xs text-muted-foreground">
-        CTR = clicks / AdSense page views. RPM and coverage are recomputed from
-        totals. Last stored date: {rows.at(-1)?.metric_date ?? "No Data"}.
+        클릭률은 클릭 수를 AdSense 페이지 조회 수로 나눈 값입니다. 1,000회
+        조회당 수익과 광고 게재 비율은 합계에서 다시 계산합니다. 마지막 저장일:{" "}
+        {rows.at(-1)?.metric_date ?? "자료 없음"}.
       </p>
     </section>
   );

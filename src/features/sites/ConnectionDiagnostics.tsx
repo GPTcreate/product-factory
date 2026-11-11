@@ -12,6 +12,13 @@ import { usePrivacyMode } from "@/lib/privacy";
 import { relativeTime } from "@/lib/dates";
 import { connectionObservations } from "@/lib/connection-observations";
 
+const OBSERVATION_LABELS: Record<Observation, string> = {
+  unknown: "확인되지 않음",
+  missing: "자료 없음",
+  zero: "측정값 0",
+  present: "자료 있음",
+};
+
 export function ConnectionDiagnostics({
   site,
   days,
@@ -23,13 +30,13 @@ export function ConnectionDiagnostics({
   const revenue = useRevenue(days, site.id);
   const observations = connectionObservations(metrics.data, revenue.data, days);
   return (
-    <section className="space-y-3" aria-label="Connection diagnostics">
+    <section className="space-y-3" aria-label="서비스 연결 진단">
       <h2 className="text-sm font-semibold">
-        Connection diagnostics · last {days} days
+        서비스 연결 진단 · 최근 {days}일
       </h2>
       <p className="text-xs text-muted-foreground">
-        Stored measurements: GA4 sessions, search clicks, AdSense earnings.
-        Provider authorization and scheduled job activation are unverified.
+        저장된 측정 자료: GA4 세션, 검색 클릭, AdSense 수익. 서비스 접근 권한과
+        예약 작업 활성화 여부는 확인되지 않았습니다.
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
         {SOURCES.map((source) => (
@@ -85,38 +92,38 @@ function DiagnosticCard({
       </p>
       <p className="text-xs">{diagnosis.action}</p>
       <p className="text-xs text-muted-foreground">
-        Last success:{" "}
+        최근 성공:{" "}
         {privacy.enabled
           ? "********"
           : relativeTime(status?.last_success_at ?? null)}
       </p>
       <p className="text-xs text-muted-foreground">
-        Stored measurement:{" "}
+        저장된 측정 자료:{" "}
         {privacy.enabled
           ? "********"
           : readError || loading
-            ? "unknown"
-            : observation}
+            ? "확인되지 않음"
+            : OBSERVATION_LABELS[observation]}
       </p>
       {latestRun && (
         <p className="break-words text-xs text-muted-foreground">
           {privacy.enabled
             ? "********"
-            : `${latestRun.range_start ?? "Unknown start"} → ${latestRun.range_end ?? "Unknown end"} · ${latestRun.error_code ?? "No error code"}`}
+            : `${latestRun.range_start ?? "시작일 미상"} → ${latestRun.range_end ?? "종료일 미상"} · ${latestRun.error_code ?? "오류 코드 없음"}`}
         </p>
       )}
       <Link
         className="inline-block text-xs text-primary hover:underline"
         to={`/sync-runs?${params}`}
       >
-        Inspect {SOURCE_LABEL[source]} run, period and error
+        {SOURCE_LABEL[source]} 실행·기간·오류 확인
       </Link>
       {runs.isError && (
         <button
           className="ml-3 text-xs text-primary"
           onClick={() => void runs.refetch()}
         >
-          Retry history read
+          이력 다시 읽기
         </button>
       )}
     </article>

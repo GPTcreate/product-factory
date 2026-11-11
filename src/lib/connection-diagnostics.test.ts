@@ -49,9 +49,7 @@ describe("connection evidence and next action", () => {
     expect(
       diagnose({ last_rows_written: 0 }, { observation: "missing" }).state,
     ).toBe("empty");
-    expect(diagnose({}, { observation: "zero" }).title).toBe(
-      "Stored zero measurement",
-    );
+    expect(diagnose({}, { observation: "zero" }).title).toBe("저장된 측정값 0");
     expect(diagnose({}, { observation: "missing" }).state).toBe("missing");
   });
   it.each(["partial", "failed", "running"] as const)(

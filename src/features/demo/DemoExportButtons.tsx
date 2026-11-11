@@ -10,6 +10,7 @@ import {
   demoSyncRuns,
 } from "@/features/demo/demo-data";
 import { cn } from "@/lib/utils";
+import { readableError } from "@/lib/ui-errors";
 
 type ExportFormat = "json" | "csv";
 
@@ -60,33 +61,49 @@ function toCsv(rows: unknown[]): string {
 
 export function DemoPdfExportButton({ site }: { site: DemoSite }) {
   const [exporting, setExporting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function exportPdf() {
     setExporting(true);
+    setError(null);
     try {
       const { saveSitePerformanceReport } =
         await import("@/lib/site-report-pdf");
-      saveSitePerformanceReport({
+      await saveSitePerformanceReport({
         site: demoSiteWithStatuses(site),
         ranges: demoReportRanges(site),
         syncRuns: demoSyncRuns(site),
         generatedAt: new Date("2026-07-13T23:06:00.000Z"),
       });
+    } catch (cause) {
+      setError(
+        readableError(
+          cause,
+          "예시 보고서를 내보내지 못했습니다. 다시 시도하세요.",
+        ),
+      );
     } finally {
       setExporting(false);
     }
   }
 
   return (
-    <Button
-      variant="secondary"
-      size="sm"
-      loading={exporting}
-      onClick={() => void exportPdf()}
-    >
-      <FileText className="h-3.5 w-3.5" />
-      Export demo PDF
-    </Button>
+    <div>
+      <Button
+        variant="secondary"
+        size="sm"
+        loading={exporting}
+        onClick={() => void exportPdf()}
+      >
+        <FileText className="h-3.5 w-3.5" />
+        예시 PDF 내보내기
+      </Button>
+      {error && (
+        <p role="alert" className="mt-2 text-sm text-destructive">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -137,7 +154,7 @@ export function DemoExportAllDataButton() {
         ) : (
           <Download className="h-4 w-4" />
         )}
-        {exporting ? "Exporting demo data" : "Export demo data"}
+        {exporting ? "예시 자료 내보내는 중" : "예시 자료 내보내기"}
         {!exporting && <ChevronDown className="h-3.5 w-3.5" />}
       </button>
       {open && (
@@ -145,13 +162,13 @@ export function DemoExportAllDataButton() {
           <ExportOption
             icon={FileJson}
             label="JSON"
-            detail="One structured demo bundle"
+            detail="예시 자료를 하나의 파일로 저장"
             onClick={() => void exportData("json")}
           />
           <ExportOption
             icon={Table}
             label="CSV ZIP"
-            detail="One CSV file per table"
+            detail="표마다 CSV 파일로 저장"
             onClick={() => void exportData("csv")}
           />
         </div>

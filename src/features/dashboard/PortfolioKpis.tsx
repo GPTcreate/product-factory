@@ -23,7 +23,7 @@ export function PortfolioKpis({
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       <StatCard
-        label="Search clicks"
+        label="검색 클릭 수"
         value={
           availability?.search ??
           formatNumber(
@@ -33,7 +33,7 @@ export function PortfolioKpis({
         hint={<MetricDelta change={kpis.clicks.pct} />}
       />
       <StatCard
-        label="Impressions"
+        label="검색 노출 수"
         value={
           availability?.search ??
           formatNumber(
@@ -46,7 +46,7 @@ export function PortfolioKpis({
         hint={<MetricDelta change={kpis.impressions.pct} />}
       />
       <StatCard
-        label="Active users"
+        label="활성 사용자 수"
         value={
           availability?.ga4 ??
           formatNumber(
@@ -56,7 +56,7 @@ export function PortfolioKpis({
         hint={<MetricDelta change={kpis.users.pct} />}
       />
       <StatCard
-        label="Sessions"
+        label="세션 수"
         value={
           availability?.ga4 ??
           formatNumber(
@@ -66,7 +66,7 @@ export function PortfolioKpis({
         hint={
           totalClicks > 0 ? (
             <span className="text-muted-foreground">
-              Bing = {bingShare}% of clicks
+              전체 클릭 중 Bing 비중 {bingShare}%
             </span>
           ) : (
             <MetricDelta change={kpis.sessions.pct} />

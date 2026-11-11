@@ -70,38 +70,44 @@ export function ComparisonTable({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-left text-xs text-muted-foreground">
-              <Th label="Website" k="name" sort={sort} onSort={toggle} />
+              <Th label="제품" k="name" sort={sort} onSort={toggle} />
               <Th
-                label="Sessions"
+                label="세션 수"
                 k="sessions"
                 sort={sort}
                 onSort={toggle}
                 numeric
               />
-              <Th label="Users" k="users" sort={sort} onSort={toggle} numeric />
               <Th
-                label="Clicks"
+                label="사용자 수"
+                k="users"
+                sort={sort}
+                onSort={toggle}
+                numeric
+              />
+              <Th
+                label="클릭 수"
                 k="clicks"
                 sort={sort}
                 onSort={toggle}
                 numeric
               />
               <Th
-                label="Impr."
+                label="노출 수"
                 k="impressions"
                 sort={sort}
                 onSort={toggle}
                 numeric
               />
-              <Th label="CTR" k="ctr" sort={sort} onSort={toggle} numeric />
+              <Th label="클릭률" k="ctr" sort={sort} onSort={toggle} numeric />
               <Th
-                label="Pos."
+                label="평균 순위"
                 k="position"
                 sort={sort}
                 onSort={toggle}
                 numeric
               />
-              <th className="px-3 py-2.5 font-medium">30d trend</th>
+              <th className="px-3 py-2.5 font-medium">30일 추이</th>
             </tr>
           </thead>
           <tbody>

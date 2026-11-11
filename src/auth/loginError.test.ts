@@ -18,7 +18,7 @@ describe("login error classification", () => {
   ])("classifies %j as %s without blaming a password", (error, category) => {
     const result = describeLoginError(error);
     expect(result.diagnostic.category).toBe(category);
-    expect(result.text === "Invalid email or password.").toBe(
+    expect(result.text === "이메일 또는 비밀번호가 올바르지 않습니다.").toBe(
       category === "credentials",
     );
   });

@@ -28,16 +28,16 @@ describe("LoginPage", () => {
     const user = userEvent.setup();
     renderLogin();
 
-    await user.click(screen.getByRole("button", { name: /sign in/i }));
+    await user.click(screen.getByRole("button", { name: /로그인/ }));
 
-    expect(await screen.findByText(/valid email address/i)).toBeInTheDocument();
+    expect(await screen.findByText(/올바른 이메일 주소/)).toBeInTheDocument();
     expect(signIn).not.toHaveBeenCalled();
   });
 
   it("has no sign-up link", () => {
     renderLogin();
-    expect(screen.queryByText(/sign up/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/create account/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/회원가입/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/계정 만들기/)).not.toBeInTheDocument();
   });
 
   it.each(["returned", "thrown"])(
@@ -49,14 +49,16 @@ describe("LoginPage", () => {
       const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
       const user = userEvent.setup();
       renderLogin();
-      await user.type(screen.getByLabelText("Email"), "test@example.com");
-      await user.type(screen.getByLabelText("Password"), "fixture-password");
-      await user.click(screen.getByRole("button", { name: /sign in/i }));
+      await user.type(screen.getByLabelText("이메일"), "test@example.com");
+      await user.type(screen.getByLabelText("비밀번호"), "fixture-password");
+      await user.click(screen.getByRole("button", { name: /로그인/ }));
       expect(
-        await screen.findByText(/Could not reach the sign-in service/),
+        await screen.findByText(/로그인 서비스에 연결하지 못했습니다/),
       ).toBeInTheDocument();
-      expect(screen.queryByText("Invalid email or password.")).toBeNull();
-      expect(screen.getByRole("button", { name: /sign in/i })).toBeEnabled();
+      expect(
+        screen.queryByText("이메일 또는 비밀번호가 올바르지 않습니다."),
+      ).toBeNull();
+      expect(screen.getByRole("button", { name: /로그인/ })).toBeEnabled();
       expect(warn).toHaveBeenCalledWith("Sign-in failed", {
         category: "network",
         status: 0,

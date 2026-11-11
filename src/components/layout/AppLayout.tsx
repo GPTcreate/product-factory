@@ -87,7 +87,7 @@ export function AppLayout() {
             로그아웃
           </Button>
           <p className="px-1 pt-3 text-[10px] font-medium text-muted-foreground">
-            Commit {APP_COMMIT}
+            배포 버전 {APP_COMMIT}
           </p>
         </div>
       </aside>

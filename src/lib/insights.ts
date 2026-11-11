@@ -1,4 +1,5 @@
 import { computeHealth } from "@/lib/health";
+import { SOURCE_LABEL } from "@/lib/sources";
 import {
   percentageChange,
   splitPeriods,
@@ -371,9 +372,9 @@ function buildInsights(input: BuildInput): Insight[] {
         out.push({
           id: `health-${site.id}-${status.source}`,
           severity: "critical",
-          title: `${site.name}: ${status.source.toUpperCase()} ${health.title.toLowerCase()}`,
+          title: `${site.name}: ${SOURCE_LABEL[status.source]} ${health.title}`,
           detail: health.reason,
-          action: "Open Sync history and check the error / credentials.",
+          action: "수집 이력에서 오류·인증 상태를 확인하세요.",
           siteId: site.id,
         });
       }
@@ -387,9 +388,9 @@ function buildInsights(input: BuildInput): Insight[] {
       out.push({
         id: `decline-${s.siteId}`,
         severity: "warning",
-        title: `${s.siteName}: clicks down ${Math.abs(Math.round(pct))}%`,
-        detail: `Search clicks fell from ${s.clicks.previous.toLocaleString()} to ${s.clicks.current.toLocaleString()} vs the previous period.`,
-        action: "Check for ranking drops, deindexed pages, or seasonality.",
+        title: `${s.siteName}: 검색 클릭 ${Math.abs(Math.round(pct))}% 감소`,
+        detail: `직전 기간보다 검색 클릭이 ${s.clicks.previous.toLocaleString()}회에서 ${s.clicks.current.toLocaleString()}회로 줄었습니다.`,
+        action: "검색 순위 하락, 색인 제외, 계절적 변화를 확인하세요.",
         siteId: s.siteId,
       });
     }
@@ -402,9 +403,9 @@ function buildInsights(input: BuildInput): Insight[] {
       out.push({
         id: `gain-${s.siteId}`,
         severity: "positive",
-        title: `${s.siteName}: clicks up ${Math.round(pct)}%`,
-        detail: `Search clicks rose from ${s.clicks.previous.toLocaleString()} to ${s.clicks.current.toLocaleString()}.`,
-        action: "Identify the winning pages/queries and double down.",
+        title: `${s.siteName}: 검색 클릭 ${Math.round(pct)}% 증가`,
+        detail: `검색 클릭이 ${s.clicks.previous.toLocaleString()}회에서 ${s.clicks.current.toLocaleString()}회로 늘었습니다.`,
+        action: "성과가 좋은 페이지·검색어를 확인하고 개선을 이어가세요.",
         siteId: s.siteId,
       });
     }
@@ -422,9 +423,9 @@ function buildInsights(input: BuildInput): Insight[] {
         out.push({
           id: `ctr-${s.siteId}`,
           severity: "info",
-          title: `${s.siteName}: low CTR (${(s.ctr * 100).toFixed(1)}%)`,
-          detail: `${s.impressions.current.toLocaleString()} impressions but CTR is well below the portfolio average of ${(benchCtr * 100).toFixed(1)}%.`,
-          action: "Sharpen titles & meta descriptions to earn more clicks.",
+          title: `${s.siteName}: 낮은 클릭률 (${(s.ctr * 100).toFixed(1)}%)`,
+          detail: `${s.impressions.current.toLocaleString()}회 노출됐지만 클릭률은 전체 제품 평균 ${(benchCtr * 100).toFixed(1)}%보다 크게 낮습니다.`,
+          action: "검색 결과의 제목·설명을 개선해 클릭을 유도하세요.",
           siteId: s.siteId,
         });
       }
@@ -441,9 +442,9 @@ function buildInsights(input: BuildInput): Insight[] {
       out.push({
         id: `pos-${s.siteId}`,
         severity: "info",
-        title: `${s.siteName}: avg position ${s.position.toFixed(1)}`,
-        detail: `Ranking on page 2+ despite ${s.impressions.current.toLocaleString()} impressions.`,
-        action: "Strengthen the top pages to push onto page 1.",
+        title: `${s.siteName}: 평균 검색 순위 ${s.position.toFixed(1)}위`,
+        detail: `${s.impressions.current.toLocaleString()}회 노출되지만 검색 결과 2페이지 이후에 위치합니다.`,
+        action: "주요 페이지를 개선해 검색 결과 첫 페이지 진입을 검토하세요.",
         siteId: s.siteId,
       });
     }
@@ -456,12 +457,12 @@ function buildInsights(input: BuildInput): Insight[] {
       out.push({
         id: `anomaly-${s.siteId}`,
         severity: s.anomaly.z > 0 ? "info" : "warning",
-        title: `${s.siteName}: unusual ${dir} on ${s.anomaly.date}`,
-        detail: `${Math.round(s.anomaly.value).toLocaleString()} sessions that day vs a ~${Math.round(s.anomaly.mean).toLocaleString()} average for the period.`,
+        title: `${s.siteName}: ${s.anomaly.date} 방문 ${dir === "spike" ? "급증" : "급감"}`,
+        detail: `해당 날짜의 세션 수는 ${Math.round(s.anomaly.value).toLocaleString()}회이며 기간 평균은 약 ${Math.round(s.anomaly.mean).toLocaleString()}회입니다.`,
         action:
           s.anomaly.z > 0
-            ? "Find the traffic source - a feature, link, or campaign worth repeating."
-            : "Check for an outage, tracking gap, or ranking loss that day.",
+            ? "유입 경로를 살펴보고 반복할 가치가 있는 소개·링크·캠페인을 확인하세요."
+            : "해당 날짜의 장애, 측정 누락, 검색 순위 하락을 확인하세요.",
         siteId: s.siteId,
       });
     }
@@ -473,11 +474,11 @@ function buildInsights(input: BuildInput): Insight[] {
       out.push({
         id: `cov-${c.siteId}-${c.source}`,
         severity: "warning",
-        title: `${c.siteName}: ${c.source.toUpperCase()} data is stale`,
+        title: `${c.siteName}: ${SOURCE_LABEL[c.source]} 최근 자료 확인 필요`,
         detail: c.lastDataDate
-          ? `No new ${c.source.toUpperCase()} data since ${c.lastDataDate} (${c.staleDays} days).`
-          : `No ${c.source.toUpperCase()} data on record yet.`,
-        action: "Run a manual sync and verify the property configuration.",
+          ? `${c.lastDataDate} 이후 ${c.staleDays}일 동안 새 ${SOURCE_LABEL[c.source]} 자료가 없습니다.`
+          : `아직 저장된 ${SOURCE_LABEL[c.source]} 자료가 없습니다.`,
+        action: "수동 수집을 실행하고 속성 설정을 확인하세요.",
         siteId: c.siteId,
       });
     }

@@ -1,3 +1,4 @@
+import { readableError } from "./ui-errors";
 import type {
   Idea,
   FactoryWeek,
@@ -251,7 +252,7 @@ export async function getSyncRuns(
   const sites = new Map((sitesRes.data ?? []).map((s) => [s.id, s] as const));
   return (runsRes.data ?? []).map((run) => ({
     ...run,
-    site_name: sites.get(run.site_id)?.name ?? "Unknown site",
+    site_name: sites.get(run.site_id)?.name ?? "알 수 없는 제품",
     site_domain: sites.get(run.site_id)?.domain ?? "",
   }));
 }
@@ -294,7 +295,7 @@ export async function invokeManualSync(
     const ctx = (error as { context?: Response }).context;
     let status: number | undefined;
     let code = "error";
-    let message = "Sync request failed.";
+    let message = "수집을 요청하지 못했습니다.";
     if (ctx && typeof ctx.json === "function") {
       status = ctx.status;
       try {
@@ -303,7 +304,7 @@ export async function invokeManualSync(
           message?: string;
         };
         code = payload.error ?? code;
-        message = payload.message ?? message;
+        message = readableError(payload, message);
       } catch {
         // non-JSON body - keep generic message
       }
@@ -354,7 +355,7 @@ export async function saveSite(args: {
     const ctx = (error as { context?: Response }).context;
     let status: number | undefined;
     let code = "error";
-    let message = "Could not save the site.";
+    let message = "제품을 저장하지 못했습니다.";
     if (ctx && typeof ctx.json === "function") {
       status = ctx.status;
       try {
@@ -363,7 +364,7 @@ export async function saveSite(args: {
           message?: string;
         };
         code = payload.error ?? code;
-        message = payload.message ?? message;
+        message = readableError(payload, message);
       } catch {
         // keep generic message
       }
@@ -382,12 +383,12 @@ export async function deleteSite(id: string): Promise<void> {
   if (error) {
     const ctx = (error as { context?: Response }).context;
     let status: number | undefined;
-    let message = "Could not delete the site.";
+    let message = "제품을 삭제하지 못했습니다.";
     if (ctx && typeof ctx.json === "function") {
       status = ctx.status;
       try {
         const payload = (await ctx.clone().json()) as { message?: string };
-        message = payload.message ?? message;
+        message = readableError(payload, message);
       } catch {
         // keep generic message
       }
@@ -727,7 +728,7 @@ async function invokeFunction<T>(
           message?: string;
         };
         code = payload.error ?? code;
-        message = payload.message ?? message;
+        message = readableError(payload, message);
       } catch {
         // non-JSON body - keep generic message
       }
@@ -757,7 +758,7 @@ export async function addTrackedQuery(
   await invokeFunction(
     "manage-portfolio",
     { action: "tracked-query.add", trackedQuery: { siteId, query } },
-    "Could not track the query.",
+    "검색어를 추적 항목에 추가하지 못했습니다.",
   );
 }
 
@@ -768,7 +769,7 @@ export async function removeTrackedQuery(
   await invokeFunction(
     "manage-portfolio",
     { action: "tracked-query.remove", trackedQuery: { siteId, query } },
-    "Could not untrack the query.",
+    "검색어 추적을 해제하지 못했습니다.",
   );
 }
 
@@ -898,14 +899,14 @@ export async function getAiBriefing(
     error?: string;
     briefing?: string;
     model?: string;
-  }>("ai-briefing", { days, summary }, "Could not generate the briefing.");
+  }>("ai-briefing", { days, summary }, "요약 보고서를 생성하지 못했습니다.");
   if (!result.ok && result.error === "not_configured") {
     return { configured: false, briefing: null, model: null };
   }
   if (!result.ok || !result.briefing) {
     throw new PortfolioActionError(
       result.error ?? "error",
-      "Could not generate the briefing.",
+      "요약 보고서를 생성하지 못했습니다.",
     );
   }
   return {

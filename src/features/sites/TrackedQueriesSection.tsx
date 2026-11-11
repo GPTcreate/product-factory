@@ -52,7 +52,7 @@ export function TrackedQueriesSection({
     }
     const series: ChartSeries[] = tracked.map((t, i) => ({
       key: t.query,
-      name: privacy.enabled ? `Query ${i + 1}` : t.query,
+      name: privacy.enabled ? `검색어 ${i + 1}` : t.query,
       color: SERIES_COLORS[i % SERIES_COLORS.length],
     }));
     const rows = [...byDate.values()].sort((a, b) =>
@@ -66,12 +66,12 @@ export function TrackedQueriesSection({
   if (tracked.length === 0) {
     return (
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold">Tracked queries</h2>
+        <h2 className="text-sm font-semibold">추적 검색어</h2>
         <Card>
           <CardContent className="flex items-center gap-3 p-4 text-sm text-muted-foreground">
             <Star className="h-4 w-4" aria-hidden />
-            Star a query in the top-terms table below to chart its Google
-            position over time.
+            아래 주요 검색어 표에서 별표를 누르면 Google 검색 순위의 변화를
+            차트로 확인할 수 있습니다.
           </CardContent>
         </Card>
       </section>
@@ -80,7 +80,7 @@ export function TrackedQueriesSection({
 
   return (
     <section className="space-y-3">
-      <h2 className="text-sm font-semibold">Tracked queries · position</h2>
+      <h2 className="text-sm font-semibold">추적 검색어 · 검색 순위</h2>
       <div className="flex flex-wrap gap-2">
         {tracked.map((t, i) => (
           <span
@@ -93,10 +93,10 @@ export function TrackedQueriesSection({
                 backgroundColor: SERIES_COLORS[i % SERIES_COLORS.length],
               }}
             />
-            {privacy.enabled ? `Query ${i + 1}` : t.query}
+            {privacy.enabled ? `검색어 ${i + 1}` : t.query}
             <button
               type="button"
-              aria-label={`Stop tracking ${t.query}`}
+              aria-label={`${t.query} 추적 중지`}
               className="text-muted-foreground hover:text-critical"
               disabled={trackQuery.isPending}
               onClick={() =>
@@ -110,7 +110,7 @@ export function TrackedQueriesSection({
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Average position (lower is better)</CardTitle>
+          <CardTitle>평균 순위(숫자가 작을수록 좋음)</CardTitle>
         </CardHeader>
         <CardContent>
           <MetricLineChart data={rows} series={series} height={200} />

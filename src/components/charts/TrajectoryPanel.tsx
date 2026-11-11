@@ -1,6 +1,9 @@
 import { useMemo, useState } from "react";
 import { TrendingUp } from "lucide-react";
-import type { TrajectoryMetricResult } from "@/lib/series";
+import {
+  trajectoryMetricLabel,
+  type TrajectoryMetricResult,
+} from "@/lib/series";
 import { formatNumber, formatPercentChange } from "@/lib/format";
 import { usePrivacyMode } from "@/lib/privacy";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,8 +54,8 @@ export function TrajectoryPanel({
         <h2 className="text-sm font-semibold">{title}</h2>
         <EmptyState
           icon={TrendingUp}
-          title="No data yet"
-          description="Trajectories appear once at least one metric has recorded history."
+          title="아직 자료가 없습니다"
+          description="한 가지 이상의 지표에 이력이 쌓이면 예상 추이가 표시됩니다."
         />
       </section>
     );
@@ -76,7 +79,7 @@ export function TrajectoryPanel({
                   : "bg-muted text-muted-foreground hover:text-foreground",
               )}
             >
-              {t.label}
+              {trajectoryMetricLabel(t)}
             </button>
           ))}
         </div>
@@ -85,8 +88,8 @@ export function TrajectoryPanel({
       {!selected.forecast ? (
         <EmptyState
           icon={TrendingUp}
-          title={`Not enough history to forecast ${selected.label.toLowerCase()}`}
-          description="Forecasts appear once at least 8 days of data are stored; a full weekly pattern needs 21. Try another metric above."
+          title={`${trajectoryMetricLabel(selected)} 예측을 위한 이력이 부족합니다`}
+          description="최소 8일의 자료가 있어야 예측하며, 주간 패턴에는 21일이 필요합니다. 다른 지표를 선택해 보세요."
         />
       ) : (
         <TrajectoryMetricChart
@@ -153,18 +156,18 @@ function TrajectoryMetricChart({
     <>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         <StatCard
-          label={`Projected ${metric.label.toLowerCase()} (${horizonDays}d)`}
+          label={`예상 ${trajectoryMetricLabel(metric)} (${horizonDays}일)`}
           value={formatNumber(Math.round(horizonTotal))}
           hint={
             <span className="text-muted-foreground">
               {forecast.method === "holt-winters"
-                ? "weekly-seasonal model"
-                : "linear trend (short history)"}
+                ? "주간 계절성 모형"
+                : "선형 추세 (짧은 관측 기간)"}
             </span>
           }
         />
         <StatCard
-          label="Trend per week"
+          label="주당 추세 변화"
           value={
             <span
               className={trendPerWeek >= 0 ? "text-success" : "text-critical"}
@@ -183,14 +186,14 @@ function TrajectoryMetricChart({
           hint={
             trendPct != null ? (
               <span className="text-muted-foreground">
-                {formatPercentChange(privacy.enabled ? null : trendPct)} of
-                current daily level
+                현재 일별 수준 대비{" "}
+                {formatPercentChange(privacy.enabled ? null : trendPct)}
               </span>
             ) : undefined
           }
         />
         <StatCard
-          label="Forecast uncertainty"
+          label="예측 불확실성"
           value={`±${formatNumber(
             Math.round(
               privacy.maskNumber(
@@ -200,13 +203,13 @@ function TrajectoryMetricChart({
             ),
           )}`}
           hint={
-            <span className="text-muted-foreground">80% band, per day</span>
+            <span className="text-muted-foreground">일별 80% 예측 범위</span>
           }
         />
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>{metric.label}: observed &amp; forecast</CardTitle>
+          <CardTitle>{trajectoryMetricLabel(metric)}: 관측·예측</CardTitle>
         </CardHeader>
         <CardContent>
           <MetricLineChart
@@ -215,12 +218,12 @@ function TrajectoryMetricChart({
             series={[
               {
                 key: metric.label,
-                name: metric.label,
+                name: trajectoryMetricLabel(metric),
                 color: CHART_COLORS.primary,
               },
               {
                 key: "Forecast",
-                name: "Forecast",
+                name: "예측",
                 color: CHART_COLORS.violet,
                 dashed: true,
               },

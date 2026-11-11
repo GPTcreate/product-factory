@@ -21,6 +21,8 @@ import { MetadataImportDialog } from "./MetadataImportDialog";
 import { OperationalIssues } from "./OperationalIssues";
 import type { Site } from "@/types/database";
 import type { SiteFormValues } from "@/lib/api";
+import { PRODUCT_STATUS_LABELS } from "@/features/factory/operations-labels";
+import { MARKET_LABELS } from "./site-labels";
 
 export function SitesPage() {
   const privacy = usePrivacyMode();
@@ -39,9 +41,9 @@ export function SitesPage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold">Products</h1>
+          <h1 className="text-xl font-semibold">제품</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Your product portfolio, lifecycle and integration health.
+            제품 포트폴리오의 진행 단계와 서비스 연결 상태를 확인합니다.
           </p>
         </div>
         <Button
@@ -52,7 +54,7 @@ export function SitesPage() {
           }}
         >
           <Plus className="h-4 w-4" aria-hidden />
-          Add product
+          제품 등록
         </Button>
       </div>
 
@@ -61,7 +63,7 @@ export function SitesPage() {
         disabled={!sites || privacy.enabled}
         onClick={() => setImporting(true)}
       >
-        Import metadata
+        메타데이터 가져오기
       </Button>
       {importing && sites && (
         <MetadataImportDialog
@@ -94,7 +96,7 @@ export function SitesPage() {
               setAdding(true);
             }}
           >
-            Register P001 · IPOScore
+            P001 · IPOScore 등록
           </Button>
         )}
 
@@ -110,8 +112,8 @@ export function SitesPage() {
 
       {sites && sites.length === 0 && (
         <EmptyState
-          title="No products yet"
-          description="Add your first product to start tracking its metrics."
+          title="등록된 제품이 없습니다"
+          description="첫 제품을 등록하면 지표를 관리할 수 있습니다."
           action={
             <Button
               size="sm"
@@ -121,7 +123,7 @@ export function SitesPage() {
               }}
             >
               <Plus className="h-4 w-4" aria-hidden />
-              Add product
+              제품 등록
             </Button>
           }
         />
@@ -143,12 +145,14 @@ export function SitesPage() {
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <span className="factory-tag">
-                      {site.product_code ?? "Unassigned"}
+                      {site.product_code ?? "미지정"}
                     </span>
-                    <span className="factory-tag">{site.status ?? "LIVE"}</span>
                     <span className="factory-tag">
-                      {site.market ?? "Global"} · L{site.level ?? 1} · v
-                      {site.version ?? "1.0"}
+                      {PRODUCT_STATUS_LABELS[site.status ?? "LIVE"]}
+                    </span>
+                    <span className="factory-tag">
+                      {MARKET_LABELS[site.market ?? "Global"] ?? site.market} ·{" "}
+                      {site.level ?? 1}단계 · v{site.version ?? "1.0"}
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -169,7 +173,7 @@ export function SitesPage() {
                     })}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Last success{" "}
+                    최근 성공{" "}
                     {privacy.enabled
                       ? "********"
                       : relativeTime(
@@ -190,7 +194,7 @@ export function SitesPage() {
       {sites && sites.length > 0 && <OperationalIssues sites={sites} />}
       {insights.data && (
         <section className="space-y-3">
-          <h2 className="font-semibold">Product KPI comparison · 30 days</h2>
+          <h2 className="font-semibold">제품 핵심 지표 비교 · 최근 30일</h2>
           <ComparisonTable
             sites={insights.data.sites}
             missing={

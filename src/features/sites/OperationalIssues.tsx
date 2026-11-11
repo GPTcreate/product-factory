@@ -12,12 +12,12 @@ import { HealthBadge } from "@/components/status/HealthBadge";
 
 export function OperationalIssues({ sites }: { sites: SiteWithStatuses[] }) {
   return (
-    <section aria-label="Operational issues" className="space-y-4">
-      <h2 className="font-semibold">Operational issues · last 30 days</h2>
+    <section aria-label="운영 점검 사항" className="space-y-4">
+      <h2 className="font-semibold">운영 점검 사항 · 최근 30일</h2>
       <p className="text-xs text-muted-foreground">
-        One issue per product and provider. Stored measurements, configuration
-        and execution evidence are separate. Provider access and scheduled jobs
-        remain unverified.
+        제품과 서비스별 점검 사항입니다. 저장된 측정 자료와 설정, 실행 근거는
+        각각 확인합니다. 서비스 접근 권한과 예약 작업 실행 여부는 확인되지
+        않았습니다.
       </p>
       {sites.map((site) => (
         <ProductIssues key={site.id} site={site} />
@@ -73,7 +73,7 @@ function ProductIssues({ site }: { site: SiteWithStatuses }) {
   };
   return (
     <section
-      aria-label={`Issues for ${privacy.maskText(site.name)}`}
+      aria-label={`${privacy.maskText(site.name)} 운영 점검 사항`}
       className="space-y-3 rounded-lg border p-4"
     >
       <Link
@@ -83,14 +83,13 @@ function ProductIssues({ site }: { site: SiteWithStatuses }) {
         {privacy.maskText(site.name)}
       </Link>
       <p className="text-xs">
-        {issues.length} issues · {unknown.length} unverified · {healthy.length}{" "}
-        normal measurements
+        점검 필요 {issues.length}개 · 미확인 {unknown.length}개 · 정상 측정{" "}
+        {healthy.length}개
       </p>
       {healthy.length > 0 && (
         <p className="text-xs text-muted-foreground">
-          Normal measurements:{" "}
-          {healthy.map((d) => SOURCE_LABEL[d.source]).join(", ")}. Authorization
-          and scheduled jobs remain unverified.
+          정상 측정: {healthy.map((d) => SOURCE_LABEL[d.source]).join(", ")}.
+          접근 권한과 예약 작업은 확인되지 않았습니다.
         </p>
       )}
       <div className="grid gap-3 sm:grid-cols-2">
@@ -106,7 +105,7 @@ function ProductIssues({ site }: { site: SiteWithStatuses }) {
             return (
               <article
                 key={source}
-                aria-label={`${SOURCE_LABEL[source]} issue`}
+                aria-label={`${SOURCE_LABEL[source]} 점검 사항`}
                 className="min-w-0 space-y-2 rounded-lg border p-3"
               >
                 <h3 className="text-sm font-medium">{SOURCE_LABEL[source]}</h3>
@@ -122,7 +121,7 @@ function ProductIssues({ site }: { site: SiteWithStatuses }) {
                 </p>
                 <p className="text-xs">{diagnosis.action}</p>
                 <p className="text-xs text-muted-foreground">
-                  Last success:{" "}
+                  최근 성공:{" "}
                   {privacy.enabled
                     ? "********"
                     : relativeTime(status?.last_success_at ?? null)}
@@ -131,14 +130,14 @@ function ProductIssues({ site }: { site: SiteWithStatuses }) {
                   <p className="break-words text-xs">
                     {privacy.enabled
                       ? "********"
-                      : `${run.range_start ?? "Unknown start"} → ${run.range_end ?? "Unknown end"} · ${run.error_code ?? "No error code"}`}
+                      : `${run.range_start ?? "시작일 미상"} → ${run.range_end ?? "종료일 미상"} · ${run.error_code ?? "오류 코드 없음"}`}
                   </p>
                 )}
                 <Link
                   to={`/sync-runs?${params}`}
                   className="block text-xs text-primary hover:underline"
                 >
-                  Inspect {SOURCE_LABEL[source]} run, period and error
+                  {SOURCE_LABEL[source]} 실행·기간·오류 확인
                 </Link>
                 {(evidence.isError || runQuery.isError) && (
                   <button
@@ -148,7 +147,7 @@ function ProductIssues({ site }: { site: SiteWithStatuses }) {
                       void runQuery.refetch();
                     }}
                   >
-                    Retry evidence read
+                    근거 자료 다시 읽기
                   </button>
                 )}
               </article>
