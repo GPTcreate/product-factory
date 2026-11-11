@@ -223,6 +223,7 @@ export function SiteDetailPage() {
           <Button
             key={v}
             size="sm"
+            className="shrink-0 whitespace-nowrap"
             variant={v === tab ? "primary" : "ghost"}
             onClick={() => setTab(v)}
           >

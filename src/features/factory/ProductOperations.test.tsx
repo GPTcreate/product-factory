@@ -81,6 +81,8 @@ function view(site: SiteWithStatuses) {
 }
 
 function newTaskForm() {
+  const disclosure = screen.getByText("새 개선 작업 등록");
+  if (!disclosure.closest("details")?.open) fireEvent.click(disclosure);
   const form = screen
     .getByRole("heading", { name: /새.*작업/ })
     .closest("form");

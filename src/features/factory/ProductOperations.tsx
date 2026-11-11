@@ -106,7 +106,12 @@ function ProductOperationsContent({ site, section }: ProductOperationsProps) {
             {data.tasks.filter((task) => task.status !== "done").length}개 ·
             완료 {data.tasks.filter((task) => task.status === "done").length}개
           </p>
-          <TaskEditor key={`${site.id}:new-task`} siteId={site.id} />
+          <details className="factory-panel" key={`${site.id}:new-task`}>
+            <summary className="min-h-[44px] cursor-pointer py-3 font-medium">
+              새 개선 작업 등록
+            </summary>
+            <TaskEditor siteId={site.id} />
+          </details>
           {data.tasks.map((task) => (
             <details
               className="factory-panel"

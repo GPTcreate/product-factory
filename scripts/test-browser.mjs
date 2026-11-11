@@ -296,6 +296,7 @@ await page.getByRole("button", { name: "핵심 기능 저장", exact: true }).cl
 await page.getByText(/확인 시각/).waitFor();
 assert.equal(launchChecks[0].status, "ready");
 await page.getByRole("button", { name: "작업 현황", exact: true }).click();
+await page.getByText("새 개선 작업 등록", { exact: true }).click();
 await page.getByLabel("새 작업 제목").fill("Fix fixture measurement");
 await page.getByLabel("새 작업 상태").selectOption("doing");
 await page.getByLabel("우선순위").first().selectOption("high");
@@ -345,6 +346,15 @@ assert.equal(
   ),
   true,
   "Product operations should fit the mobile viewport",
+);
+assert.equal(
+  await page
+    .locator('nav[aria-label="제품 상세 탭"] button')
+    .evaluateAll((buttons) =>
+      buttons.every((b) => b.scrollHeight <= b.clientHeight),
+    ),
+  true,
+  "Korean tab labels must remain readable without vertical text overflow",
 );
 await page.setViewportSize({ width: 1440, height: 1000 });
 await page.getByRole("link", { name: "주간 관리", exact: true }).click();
